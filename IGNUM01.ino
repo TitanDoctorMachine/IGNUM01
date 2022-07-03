@@ -7,7 +7,7 @@ SHA256 sha256, userhash;
 
 int last_User;
 byte UserSessionid[32], Challenge[32];
-String STRKeyChallenge, UsersHash[32], ValidTokens[32];
+String STRKeyChallenge, UsersHash[32], ValidTokens[32], PlainPackage[6];
 
 String Users[32] = {"docmac0522105v1418df4v15v4df8","hellodarkenssmyoldfriend","ivecometotalktoyouagain", "andinthedarkens", "andiknow!", "itwillcome", "forsometime", "andicantbermorehnfindjkvn", "ndijvndinvir", "ndfvieriv", "iknfivnr"};
   
@@ -24,7 +24,15 @@ void setup() {
 }
 
 void loop() {
+  delay(500);
   RNG.loop();
+
+  String terminal = Serial.readString();
+    PlainPackage[1] = "info";
+    PlainPackage[2] = terminal;
+    PlainPackage[3] = "hello world!";
+    InputPlainCode();
+
 }
 
 void NewChallenge() {
@@ -104,6 +112,46 @@ void GenValidTokens(){
     
   Serial.println(ValidTokens[i]);
 
+  }  
+}
+
+void InputPlainCode(){
+  
+  //PlainPackage = istringstream iss(InputPack);
+  
+  String User_From_Command;
+  bool Accepeted = false;
+  
+  String InfoHeader = PlainPackage[1]; 
+  String ReceivedKeyChallenge = PlainPackage[2]; 
+  String Message = PlainPackage[3]; 
+  
+  for (int i; i < last_User; i++){
+    if (ValidTokens[i] == ReceivedKeyChallenge){
+      User_From_Command = Users[i];
+      Accepeted = true;
+    }
   }
   
+  if (Accepeted == true){
+    Serial.println("Acces_Granted!");
+    Serial.println("Command_From:");
+    Serial.print(User_From_Command);
+    Serial.print(InfoHeader);
+    Serial.print(Message);
+
+  }
+
+
+
 }
+
+
+void GeneratePUBKEY(){
+  
+  }
+
+
+void InputCypherCode(){
+  
+  }
