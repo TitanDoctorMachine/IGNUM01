@@ -8,7 +8,8 @@ SHA256 sha256, userhash;
 int last_User;
 byte UserSessionid[32], Challenge[32];
 String STRKeyChallenge, UsersHash[32], ValidTokens[32];
-String Users[32] = {"docmac0522105v1418df4v15v4df8","hellodarkenssmyoldfriend","ivecometotalktoyouagain", "andinthedarkens"};
+
+String Users[32] = {"docmac0522105v1418df4v15v4df8","hellodarkenssmyoldfriend","ivecometotalktoyouagain", "andinthedarkens", "andiknow!", "itwillcome", "forsometime", "andicantbermorehnfindjkvn", "ndijvndinvir", "ndfvieriv", "iknfivnr"};
   
 
 void setup() {
@@ -85,8 +86,11 @@ void GenValidTokens(){
   
   for(int i; i < last_User; i++){
     
-    String Auth = STRKeyChallenge + Users[i];
+    String Auth = STRKeyChallenge + UsersHash[i];
+    
     const char* UserAuth = Auth.c_str();
+    
+    //Serial.println(UserAuth);
     userhash.reset();
     userhash.update(UserAuth, strlen(UserAuth));
     userhash.finalize(UserSessionid, 32);
@@ -99,7 +103,7 @@ void GenValidTokens(){
     }
     
   Serial.println(ValidTokens[i]);
+
   }
-    
   
 }
