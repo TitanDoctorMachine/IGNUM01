@@ -20,18 +20,20 @@ void setup() {
   Serial.println(" ");
   NewChallenge();
   GenValidatUsers();
-  GenValidTokens();
+  GenValidTokens(); 
+
 }
 
 void loop() {
-  delay(500);
+  delay (500);
   RNG.loop();
 
-  String terminal = Serial.readString();
-    PlainPackage[1] = "info";
-    PlainPackage[2] = terminal;
-    PlainPackage[3] = "hello world!";
-    InputPlainCode();
+  String Termial = Serial.readString();
+  if ( Termial != ""){ 
+  //InputPlainCode(" info_to_transmitt_buay " + ValidTokens[3] + " liga_ssa_porra_aê_mermão" ); //teste
+  InputPlainCode(Termial);
+  }
+
 
 }
 
@@ -80,17 +82,17 @@ void GenValidatUsers(){
       if(UserSessionid[x] < 0x10) { UserSessionidstr += '0';}
       UsersHash[i] += String (UserSessionid[x], HEX);
     }    
+  
   Serial.print("User: ");
   Serial.println(Users[i]);
   Serial.print("UserHash: ");
   Serial.println(UsersHash[i]);
+  
   }
 }
 
-void GenValidTokens(){
 
-  Serial.println("");
-  Serial.println("ValidTokens:");
+void GenValidTokens(){
   
   for(int i; i < last_User; i++){
     
@@ -110,39 +112,53 @@ void GenValidTokens(){
       ValidTokens[i] += String (UserSessionid[x], HEX);
     }
     
-  Serial.println(ValidTokens[i]);
+  //Serial.println(ValidTokens[i]);
 
   }  
 }
 
-void InputPlainCode(){
-  
-  //PlainPackage = istringstream iss(InputPack);
-  
+
+void InputPlainCode(String inputPack){
+
+  Serial.println(" ");
+  Serial.println(inputPack); // Debug
+
+  //necessário espaço antes do comp 1
+  //separação dos comps da entrada na array PlainPackage
+  int CountNumber = 0;
+  while (inputPack.length() > 0)
+   {  int index = inputPack.indexOf(' ');
+      if (index == -1){
+      PlainPackage[CountNumber++] = inputPack;
+      break;
+      } else {
+      PlainPackage[CountNumber++] = inputPack.substring(0, index);
+      inputPack = inputPack.substring(index+1);
+      }
+    }
+    
   String User_From_Command;
   bool Accepeted = false;
   
   String InfoHeader = PlainPackage[1]; 
   String ReceivedKeyChallenge = PlainPackage[2]; 
   String Message = PlainPackage[3]; 
-  
-  for (int i; i < last_User; i++){
+    
+  for (int i = 0; i != last_User; i++){
     if (ValidTokens[i] == ReceivedKeyChallenge){
       User_From_Command = Users[i];
       Accepeted = true;
+      
+      Serial.println("Acces_Granted!");
+      Serial.println("Command_From:");
+      Serial.println(User_From_Command);
+      Serial.println("Command:");
+      Serial.println(Message);
+    } 
+  }
+  if (Accepeted == false){
+    Serial.println("Acces_Denied!");
     }
-  }
-  
-  if (Accepeted == true){
-    Serial.println("Acces_Granted!");
-    Serial.println("Command_From:");
-    Serial.print(User_From_Command);
-    Serial.print(InfoHeader);
-    Serial.print(Message);
-
-  }
-
-
 
 }
 
