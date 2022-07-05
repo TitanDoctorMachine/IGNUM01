@@ -7,9 +7,9 @@ SHA256 sha256, userhash;
 
 int last_User;
 byte UserSessionid[32], Challenge[32];
-String STRKeyChallenge, UsersHash[32], ValidTokens[32], PlainPackage[6];
+String STRKeyChallenge, UsersHash[32], ValidTokens[32];
 
-String Users[32] = {"docmac0522105v1418df4v15v4df8","hellodarkenssmyoldfriend","ivecometotalktoyouagain", "andinthedarkens", "andiknow!", "itwillcome", "forsometime", "andicantbermorehnfindjkvn", "ndijvndinvir", "ndfvieriv", "iknfivnr"};
+String Users[32] = {"docmac0522105v1418df4v15v4df8","hellodarkenssmyoldfriend","ivecometotalktoyouagain", "andinthedarkens"};
   
 
 void setup() {
@@ -18,28 +18,42 @@ void setup() {
   RNG.rand(Challenge, 10);
   Serial.begin(115200);
   Serial.println(" ");
-  NewChallenge();
-  GenValidatUsers();
-  GenValidTokens(); 
 
+  Start_New_Session();
 }
 
 void loop() {
+  
   delay (500);
   RNG.loop();
 
   String Termial = Serial.readString();
   if ( Termial != ""){ 
   //InputPlainCode(" info_to_transmitt_buay " + ValidTokens[3] + " liga_ssa_porra_aê_mermão" ); //teste
-  InputPlainCode(Termial);
+  String result = InputPlainCode(Termial);
+  Serial.println("\n" + result);
+  
+  Start_New_Session();
   }
 
 
 }
 
-void NewChallenge() {
-  
+void Start_New_Session() {
+
   Serial.println(" ");
+  Serial.println("ChallengeKey:");
+  STRKeyChallenge = NewChallenge();
+  Serial.println(STRKeyChallenge);
+  
+  ValidateUsers();
+  
+  }
+
+
+String NewChallenge() {
+  
+  String internalSTRKeyChallenge = "";
   RNG.rand(Challenge, 32); //gera pseudo random de 32 bytes
   
   sha256.reset();
@@ -48,20 +62,22 @@ void NewChallenge() {
 
   for (int i = 0; i != 32; i++) {
     if(Challenge[i] < 0x10) {
-      STRKeyChallenge += '0';
+      internalSTRKeyChallenge += '0';
     }
-    STRKeyChallenge += String (Challenge[i], HEX);
+    internalSTRKeyChallenge += String (Challenge[i], HEX);
     }
      
-    Serial.println("ChallengeKey:");
-    Serial.println(STRKeyChallenge);
-    Serial.println(" ");
-
-
+    return internalSTRKeyChallenge;  
 }
 
-void GenValidatUsers(){
 
+
+void ValidateUsers(){
+
+  Serial.println(" ");
+  
+  //Load last User
+  
   for(int i = 0; i < sizeof(Users)/sizeof(Users[0]); i++){
     if (Users[i] == "\0"){
       last_User = i;
@@ -69,8 +85,12 @@ void GenValidatUsers(){
       }  
   }
   
+  
+  //Generate Users
+ 
   for(int i = 0; i < last_User; i++){
-   
+    
+    UsersHash[i] = "";
      
     const char* usernow = Users[i].c_str();
     userhash.reset();
@@ -79,53 +99,60 @@ void GenValidatUsers(){
 
     String UserSessionidstr;
     for (int x = 0; x != 32; x++) {
-      if(UserSessionid[x] < 0x10) { UserSessionidstr += '0';}
+      if(UserSessionid[x] < 0x10) { 
+         UsersHash[i] += '0';
+      }
       UsersHash[i] += String (UserSessionid[x], HEX);
     }    
-  
+
+    //Generate Token
+    
+      String Auth = STRKeyChallenge + UsersHash[i];
+    
+      const char* UserAuth = Auth.c_str();
+      
+      userhash.reset();
+      userhash.update(UserAuth, strlen(UserAuth));
+      userhash.finalize(UserSessionid, 32);
+      
+      ValidTokens[i] = "";
+      
+      for (int x = 0; x != 32; x++) {
+      if(UserSessionid[x] < 0x10) {
+        ValidTokens[i] += '0';
+      }
+        ValidTokens[i] += String (UserSessionid[x], HEX);
+      }
+  /*  
   Serial.print("User: ");
   Serial.println(Users[i]);
-  Serial.print("UserHash: ");
-  Serial.println(UsersHash[i]);
+  Serial.print("UserHash: ");//DEBUG
+  Serial.println(UsersHash[i]);//DEBUG
+  Serial.print("UserToken: ");//DEBUG
+  Serial.println(ValidTokens[i]);//DEBUG  
+  */
+  
+  }  
+  
+}
+
+
+
+void InputCypherCode(){
   
   }
-}
 
 
-void GenValidTokens(){
-  
-  for(int i; i < last_User; i++){
-    
-    String Auth = STRKeyChallenge + UsersHash[i];
-    
-    const char* UserAuth = Auth.c_str();
-    
-    //Serial.println(UserAuth);
-    userhash.reset();
-    userhash.update(UserAuth, strlen(UserAuth));
-    userhash.finalize(UserSessionid, 32);
-    
-    for (int x = 0; x != 32; x++) {
-    if(UserSessionid[x] < 0x10) {
-        ValidTokens[i] += '0';
-    }
-      ValidTokens[i] += String (UserSessionid[x], HEX);
-    }
-    
-  //Serial.println(ValidTokens[i]);
+String InputPlainCode(String inputPack){
 
-  }  
-}
-
-
-void InputPlainCode(String inputPack){
-
-  Serial.println(" ");
-  Serial.println(inputPack); // Debug
-
-  //necessário espaço antes do comp 1
-  //separação dos comps da entrada na array PlainPackage
+  String PlainPackage[6];
+  String OUTPUT_Function;
+  String User_From_Command;
   int CountNumber = 0;
+  bool Accepeted = false;
+  
+  inputPack = " " + inputPack; //correção de syntax_input
+     
   while (inputPack.length() > 0)
    {  int index = inputPack.indexOf(' ');
       if (index == -1){
@@ -136,38 +163,38 @@ void InputPlainCode(String inputPack){
       inputPack = inputPack.substring(index+1);
       }
     }
-    
-  String User_From_Command;
-  bool Accepeted = false;
-  
-  String InfoHeader = PlainPackage[1]; 
-  String ReceivedKeyChallenge = PlainPackage[2]; 
-  String Message = PlainPackage[3]; 
+   
+  String ReceivedKeyChallenge = PlainPackage[1]; 
+  String Command = PlainPackage[2]; 
+  String Condition_1 = PlainPackage[3]; 
+  String Condition_2 = PlainPackage[4]; 
     
   for (int i = 0; i != last_User; i++){
     if (ValidTokens[i] == ReceivedKeyChallenge){
+      
       User_From_Command = Users[i];
       Accepeted = true;
       
-      Serial.println("Acces_Granted!");
-      Serial.println("Command_From:");
-      Serial.println(User_From_Command);
-      Serial.println("Command:");
-      Serial.println(Message);
-    } 
+      OUTPUT_Function += "Acces_Granted ";
+      OUTPUT_Function += Command; 
+      OUTPUT_Function += " "; 
+      OUTPUT_Function += Condition_1; 
+      OUTPUT_Function += " ";
+      OUTPUT_Function += Condition_2;
+          
+    } else {
+      OUTPUT_Function = "";
+      } 
   }
-  if (Accepeted == false){
-    Serial.println("Acces_Denied!");
+  if (!Accepeted){
+    OUTPUT_Function += "Acces_Denied";
     }
+
+    return OUTPUT_Function;
 
 }
 
 
 void GeneratePUBKEY(){
-  
-  }
-
-
-void InputCypherCode(){
   
   }
