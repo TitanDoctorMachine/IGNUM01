@@ -2,6 +2,7 @@
 #include <Crypto.h>
 #include <RNG.h>
 #include <cstring>
+#include "FS.h"
 
 SHA256 sha256, userhash;
 
@@ -14,6 +15,7 @@ String Users[32] = {"docmac0522105v1418df4v15v4df8","hellodarkenssmyoldfriend","
 
 void setup() {
 
+  SPIFFS.begin();
   RNG.begin("teste"); //mudar para uma hardware key
   RNG.rand(Challenge, 10);
   Serial.begin(115200);
@@ -46,7 +48,7 @@ void Start_New_Session() {
   STRKeyChallenge = NewChallenge();
   Serial.println(STRKeyChallenge);
   
-  ValidateUsers();
+  ValidateLoadedUsers();
   
   }
 
@@ -72,7 +74,100 @@ String NewChallenge() {
 
 
 
-void ValidateUsers(){
+String loadFile(String InputFile){
+  
+  String inFile;
+  String inFileAuthCopy;
+  String inFileBKP1;
+  String inFileBKPOLD;
+  String Output;
+  
+  inFile = SPIFFS.open(InputFile, "r"); //Read Main File
+  inFileAuthCopy = SPIFFS.open(InputFile + ".AuthCopy", "r"); //Read Auth File
+      
+      if(inFile == inFileAuthCopy){
+        //integrity check
+        inFile = Output;
+        
+        } else {
+          
+          inFileBKP1 = SPIFFS.open(InputFile + ".BKP1", "r"); //Read Backup File
+
+          //inFile input fault
+          if (!inFile){
+               if(inFileBKP1 == inFileAuthCopy){
+               inFileBKP1 = SPIFFS.open(InputFile, "w"); //fix fail
+               inFileBKP1 = Output;
+               }
+              } 
+          
+          //inFileAuthCopy input fault
+          if (!inFileAuthCopy){
+               if(inFileBKP1 == inFile){
+               inFile = SPIFFS.open(InputFile + ".AuthCopy", "w"); //fix fail
+               inFile = Output;
+               }
+             } 
+          
+          //failed to load backup1
+          if (!inFileBKP1){
+             inFileBKPOLD = SPIFFS.open(InputFile + ".BKPOLD", "r"); //Read Backup File
+             ///TEM QUE SE ELABORAR DESTA PARTE PRA FRENTE......  
+               
+             } 
+          
+
+        }
+      
+      
+      
+      
+
+  
+    
+  return Output;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+void loadUsers(String usrsFile, String rootFile){
+
+  String loadedUsers;
+  String fileToWrite;
+
+    
+ 
+    // open the file in write mode
+    fileToWrite = SPIFFS.open("/myfile.txt", "w"); //write file
+      if (!fileToWrite) 
+      {
+        //caso der ruim
+      }
+    
+    // conseguimos abrir
+    while(testFile.available()) 
+    {
+      String line = testFile.readStringUntil('\n');
+    }
+ 
+
+  loadedUsers.close();
+  fileToWrite.close();
+  
+}
+
+
+
+void ValidateLoadedUsers(){
 
   Serial.println(" ");
   
