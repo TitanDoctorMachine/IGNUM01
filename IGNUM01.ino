@@ -3,14 +3,17 @@
 #include <RNG.h>
 #include <cstring>
 #include "FS.h"
+#include "SpartanFileManager.h"
+
 
 SHA256 sha256, userhash;
 
-int last_User;
+int last_User, last_Root_user;
 byte UserSessionid[32], Challenge[32];
-String STRKeyChallenge, UsersHash[32], ValidTokens[32];
+String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32];
 
-String Users[32] = {"docmac0522105v1418df4v15v4df8","hellodarkenssmyoldfriend","ivecometotalktoyouagain", "andinthedarkens"};
+String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
+String Root_Group = "docmac0522105v1418df4v15v4df8"; // has to be loaded by file
   
 
 void setup() {
@@ -26,14 +29,13 @@ void setup() {
 
 void loop() {
   
-  delay (500);
+  delay (5);
   RNG.loop();
 
   String Termial = Serial.readString();
   if ( Termial != ""){ 
-  //InputPlainCode(" info_to_transmitt_buay " + ValidTokens[3] + " liga_ssa_porra_aê_mermão" ); //teste
   String result = InputPlainCode(Termial);
-  Serial.println("\n" + result);
+  Serial.println(result);
   
   Start_New_Session();
   }
@@ -47,7 +49,8 @@ void Start_New_Session() {
   Serial.println("ChallengeKey:");
   STRKeyChallenge = NewChallenge();
   Serial.println(STRKeyChallenge);
-  
+
+  loadUsers(User_Group, Root_Group);
   ValidateLoadedUsers();
   
   }
@@ -73,113 +76,52 @@ String NewChallenge() {
 }
 
 
-
-String loadFile(String InputFile){
-  
-  String inFile;
-  String inFileAuthCopy;
-  String inFileBKP1;
-  String inFileBKPOLD;
-  String Output;
-  
-  inFile = SPIFFS.open(InputFile, "r"); //Read Main File
-  inFileAuthCopy = SPIFFS.open(InputFile + ".AuthCopy", "r"); //Read Auth File
-      
-      if(inFile == inFileAuthCopy){
-        //integrity check
-        inFile = Output;
-        
-        } else {
-          
-          inFileBKP1 = SPIFFS.open(InputFile + ".BKP1", "r"); //Read Backup File
-
-          //inFile input fault
-          if (!inFile){
-               if(inFileBKP1 == inFileAuthCopy){
-               inFileBKP1 = SPIFFS.open(InputFile, "w"); //fix fail
-               inFileBKP1 = Output;
-               }
-              } 
-          
-          //inFileAuthCopy input fault
-          if (!inFileAuthCopy){
-               if(inFileBKP1 == inFile){
-               inFile = SPIFFS.open(InputFile + ".AuthCopy", "w"); //fix fail
-               inFile = Output;
-               }
-             } 
-          
-          //failed to load backup1
-          if (!inFileBKP1){
-             inFileBKPOLD = SPIFFS.open(InputFile + ".BKPOLD", "r"); //Read Backup File
-             ///TEM QUE SE ELABORAR DESTA PARTE PRA FRENTE......  
-               
-             } 
-          
-
-        }
-      
-      
-      
-      
-
-  
-    
-  return Output;
-
-}
-
-
-
-
-
-
-
-
-
-
-
 void loadUsers(String usrsFile, String rootFile){
 
-  String loadedUsers;
-  String fileToWrite;
-
-    
- 
-    // open the file in write mode
-    fileToWrite = SPIFFS.open("/myfile.txt", "w"); //write file
-      if (!fileToWrite) 
-      {
-        //caso der ruim
+  String loadedUsers = usrsFile + " \0"; //correção de syntax_input
+  String loadedUsersRoot = rootFile + " \0"; //correção de syntax_input
+     
+  //load normal users
+  int CountNumber = 0;
+  while (loadedUsers.length() > 0){  
+      int index = loadedUsers.indexOf(' ');
+      if (index == -1){
+      Users[CountNumber] = loadedUsers; // load to user[32]
+      break;
+      } else {
+      Users[CountNumber] = loadedUsers.substring(0, index); // load to user[32]
+      loadedUsers = loadedUsers.substring(index+1);
+      //Serial.println("users:");
+      //Serial.println(Users[CountNumber]); DEBUG
       }
-    
-    // conseguimos abrir
-    while(testFile.available()) 
-    {
-      String line = testFile.readStringUntil('\n');
-    }
- 
-
-  loadedUsers.close();
-  fileToWrite.close();
+   CountNumber++;
+   }
+   last_User = CountNumber;
   
+  
+  
+  //load root usersRootUsers
+  int CountNumber1 = 0;
+  while (loadedUsersRoot.length() > 0){  
+      int index = loadedUsersRoot.indexOf(' ');
+      if (index == -1){
+      RootUsers[CountNumber1] = loadedUsersRoot; // load to user[32]
+      break;
+      } else {
+      RootUsers[CountNumber1] = loadedUsersRoot.substring(0, index); // load to user[32]
+      loadedUsersRoot = loadedUsersRoot.substring(index+1);
+      //Serial.println("Root:");
+      //Serial.println(RootUsers[CountNumber1]); DEBUG
+      }
+   CountNumber1++;
+   }
+   last_Root_user = CountNumber1;
+   
 }
 
 
 
 void ValidateLoadedUsers(){
-
-  Serial.println(" ");
-  
-  //Load last User
-  
-  for(int i = 0; i < sizeof(Users)/sizeof(Users[0]); i++){
-    if (Users[i] == "\0"){
-      last_User = i;
-      i = sizeof(Users)/sizeof(Users[0]);
-      }  
-  }
-  
   
   //Generate Users
  
@@ -218,14 +160,14 @@ void ValidateLoadedUsers(){
       }
         ValidTokens[i] += String (UserSessionid[x], HEX);
       }
-  /*  
+    
   Serial.print("User: ");
   Serial.println(Users[i]);
   Serial.print("UserHash: ");//DEBUG
   Serial.println(UsersHash[i]);//DEBUG
   Serial.print("UserToken: ");//DEBUG
   Serial.println(ValidTokens[i]);//DEBUG  
-  */
+  
   
   }  
   
@@ -243,7 +185,7 @@ String InputPlainCode(String inputPack){
   String PlainPackage[6];
   String OUTPUT_Function;
   String User_From_Command;
-  int CountNumber = 0;
+  int CountNumberCommand = 0;
   bool Accepeted = false;
   
   inputPack = " " + inputPack; //correção de syntax_input
@@ -251,12 +193,13 @@ String InputPlainCode(String inputPack){
   while (inputPack.length() > 0)
    {  int index = inputPack.indexOf(' ');
       if (index == -1){
-      PlainPackage[CountNumber++] = inputPack;
+      PlainPackage[CountNumberCommand] = inputPack;
       break;
       } else {
-      PlainPackage[CountNumber++] = inputPack.substring(0, index);
+      PlainPackage[CountNumberCommand] = inputPack.substring(0, index);
       inputPack = inputPack.substring(index+1);
       }
+    CountNumberCommand++;
     }
    
   String ReceivedKeyChallenge = PlainPackage[1]; 
