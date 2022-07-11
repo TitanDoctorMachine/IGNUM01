@@ -3,11 +3,12 @@
 #include <RNG.h>
 #include <cstring>
 #include "FS.h"
-#include "SpartanFileManager.h"
+//#include "SpartanFileManager.h"
 
 
 SHA256 sha256, userhash;
 
+bool ValidCommand = 0;
 int last_User, last_Root_user;
 byte UserSessionid[32], Challenge[32];
 String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32], CommandList[5];
@@ -34,8 +35,10 @@ void loop() {
 
   String Termial = Serial.readString();
   if ( Termial != ""){ 
-  String result = InputCommand(InputPlainCode(Termial));
-  Serial.println(result);
+  ValidCommand = InputPlainCode(Termial);
+  InputCommand(ValidCommand);
+  Serial.println(InputCommand(ValidCommand));
+
   
   Start_New_Session();
   }
@@ -180,11 +183,11 @@ void InputCypherCode(){
   }
 
 
-String InputPlainCode(String inputPack){
+bool InputPlainCode(String inputPack){
 
   CommandList[0] = "";
   String PlainPackage[5];
-  String OUTPUT_Function;
+  bool OUTPUT_Function = 0;
   String User_From_Command;
   int CountNumberCommand = 0;
   bool Accepeted = false;
@@ -229,7 +232,7 @@ String InputPlainCode(String inputPack){
   
   if (Accepeted){
 
-      OUTPUT_Function = "Access_Granted";
+      OUTPUT_Function = 1;
       
       if (root_permission){
       CommandList[1] = "root:true";
@@ -242,58 +245,73 @@ String InputPlainCode(String inputPack){
       CommandList[5] = Condition_3;
       
      } else {
-       OUTPUT_Function = "Access_Denied";
+       OUTPUT_Function = 0;
      }
 
     return OUTPUT_Function;
 
 }
 
+bool GetRxValid() {return ValidCommand;} 
+String GetRxRootKey(){ return CommandList[1];}
+String GetRxCommand(){ return CommandList[2];}
+String GetRxCondit1(){ return CommandList[3];}
+String GetRxCondit2(){ return CommandList[4];}
+String GetRxCondit3(){ return CommandList[5];}
+void EndRxCommand(){
+    CommandList[1] = " ";
+    CommandList[2] = " ";
+    CommandList[3] = " ";
+    CommandList[4] = " ";
+    CommandList[5] = " ";
+}
 
 
-String InputCommand(String allowed){ // syntax == InputCommand(InputPlainCode(requisition_package));
 
-  String command_response = ""; // TEM QUE BOTAR SUBCLASSES
+
+String InputCommand(bool allowed){ // syntax == InputCommand(InputPlainCode(requisition_package));
+  
+  String command_response = "";
+
+  String RootKey = GetRxRootKey();
+  String Command = GetRxCommand();
+  String Cond1 = GetRxCondit1();
+  String Cond2 = GetRxCondit2();
+  String Cond3 = GetRxCondit3();
+  EndRxCommand();     
+
+    /// FROM THIS PART DOWN NEED TO REMAKE
     
-    if (allowed == "Access_Granted"){
+    
+    if (allowed == 1){
 
-        String root_enable = CommandList[1];
-        String Command = CommandList[2];
-        String Condition_1 = CommandList[3];
-        String Condition_2 = CommandList[4];
-        String Condition_3 = CommandList[5];
-
-        Serial.println(Command);
-        
+          Serial.println(Command);
+          Serial.println(GetRxCommand());
+          
           if (Command = 'ROOT?'){
            
-              command_response = root_enable;
-  
-            } else if (Command = 'PINOUT?'){
+              command_response = RootKey;
+                 
+
+            } else if (Command = 'PINOUT'){
               
-              if (Condition_1 = 'HIGH'){
+              if (Cond1 = 'HIGH'){
 
                 command_response = "powering_pins:ieulásei?";
-               
-                } else {
-                  command_response = "Syntax Error!";
+                     
                 }
               
             
             } else {
-              
-              command_response = "Syntax Error!";
-            
+             command_response = "Syntax_Error!";
             }
-          
-        
-        
+            
     } else {
           
-          command_response = "Access_Denied!";
+             command_response = "Access_Denied!";
        
-        }
-       
+           }
+
   return command_response;
 
 }
