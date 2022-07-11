@@ -13,7 +13,7 @@ byte UserSessionid[32], Challenge[32];
 String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32];
 
 String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
-String Root_Group = "docmac0522105v1418df4v15v4df8"; // has to be loaded by file
+String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
   
 
 void setup() {
@@ -59,7 +59,7 @@ void Start_New_Session() {
 String NewChallenge() {
   
   String internalSTRKeyChallenge = "";
-  RNG.rand(Challenge, 32); //gera pseudo random de 32 bytes
+  RNG.rand(Challenge, 32); //gera pseudo random de 32 bytes // i wanna see chaos
   
   sha256.reset();
   sha256.update(Challenge, 32);
@@ -182,11 +182,12 @@ void InputCypherCode(){
 
 String InputPlainCode(String inputPack){
 
-  String PlainPackage[6];
+  String PlainPackage[5];
   String OUTPUT_Function;
   String User_From_Command;
   int CountNumberCommand = 0;
   bool Accepeted = false;
+  bool root_permission = false;
   
   inputPack = " " + inputPack; //correção de syntax_input
      
@@ -206,31 +207,83 @@ String InputPlainCode(String inputPack){
   String Command = PlainPackage[2]; 
   String Condition_1 = PlainPackage[3]; 
   String Condition_2 = PlainPackage[4]; 
+  String Condition_3 = PlainPackage[5]; 
     
   for (int i = 0; i != last_User; i++){
-    if (ValidTokens[i] == ReceivedKeyChallenge){
+     if (ValidTokens[i] == ReceivedKeyChallenge){
+
+      Accepeted = true;
+
+      OUTPUT_Function += "\n"; //DEBUG
       
       User_From_Command = Users[i];
-      Accepeted = true;
+
+        for (int y = 0; y != last_Root_user+1; y++){        
+            if (User_From_Command == RootUsers[y]){
+              root_permission = true;
+            }
+        }
+     }
+  }
+  
+  if (Accepeted){
       
+      if (root_permission){
+      OUTPUT_Function += "root:true ";
+      } else {
+      OUTPUT_Function += "root:false ";
+      }           
       OUTPUT_Function += "Acces_Granted ";
       OUTPUT_Function += Command; 
       OUTPUT_Function += " "; 
       OUTPUT_Function += Condition_1; 
       OUTPUT_Function += " ";
       OUTPUT_Function += Condition_2;
-          
-    } else {
-      OUTPUT_Function = "";
-      } 
-  }
-  if (!Accepeted){
-    OUTPUT_Function += "Acces_Denied";
-    }
+      OUTPUT_Function += " ";
+      OUTPUT_Function += Condition_3;
+      
+     } else {
+       OUTPUT_Function += "Acces_Denied";
+     }
 
     return OUTPUT_Function;
 
 }
+
+
+/*
+String InputCommand(String inputPack){
+
+  String PlainPackage[6];
+  String OUTPUT_Function;
+  String User_From_Command;
+  int CountNumberCommand = 0;
+  bool Accepeted = false;
+  bool root_permission = false;
+  
+  inputPack = " " + inputPack; //correção de syntax_input
+     
+  while (inputPack.length() > 0)
+   {  int index = inputPack.indexOf(' ');
+      if (index == -1){
+      PlainPackage[CountNumberCommand] = inputPack;
+      break;
+      } else {
+      PlainPackage[CountNumberCommand] = inputPack.substring(0, index);
+      inputPack = inputPack.substring(index+1);
+      }
+    CountNumberCommand++;
+    }
+   
+  String ReceivedKeyChallenge = PlainPackage[1]; 
+  String Command = PlainPackage[2]; 
+  String Condition_1 = PlainPackage[3]; 
+  String Condition_2 = PlainPackage[4]; 
+  String Condition_3 = PlainPackage[5]; 
+    
+
+*/
+
 
 
 void GeneratePUBKEY(){
