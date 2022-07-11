@@ -10,7 +10,7 @@ SHA256 sha256, userhash;
 
 int last_User, last_Root_user;
 byte UserSessionid[32], Challenge[32];
-String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32];
+String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32], CommandList[5];
 
 String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
 String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
@@ -34,7 +34,7 @@ void loop() {
 
   String Termial = Serial.readString();
   if ( Termial != ""){ 
-  String result = InputPlainCode(Termial);
+  String result = InputCommand(InputPlainCode(Termial));
   Serial.println(result);
   
   Start_New_Session();
@@ -182,6 +182,7 @@ void InputCypherCode(){
 
 String InputPlainCode(String inputPack){
 
+  CommandList[0] = "";
   String PlainPackage[5];
   String OUTPUT_Function;
   String User_From_Command;
@@ -227,23 +228,21 @@ String InputPlainCode(String inputPack){
   }
   
   if (Accepeted){
+
+      OUTPUT_Function = "Access_Granted";
       
       if (root_permission){
-      OUTPUT_Function += "root:true ";
+      CommandList[1] = "root:true";
       } else {
-      OUTPUT_Function += "root:false ";
+      CommandList[1] = "root:false";
       }           
-      OUTPUT_Function += "Acces_Granted ";
-      OUTPUT_Function += Command; 
-      OUTPUT_Function += " "; 
-      OUTPUT_Function += Condition_1; 
-      OUTPUT_Function += " ";
-      OUTPUT_Function += Condition_2;
-      OUTPUT_Function += " ";
-      OUTPUT_Function += Condition_3;
+      CommandList[2] = Command; 
+      CommandList[3] = Condition_1; 
+      CommandList[4] = Condition_2;
+      CommandList[5] = Condition_3;
       
      } else {
-       OUTPUT_Function += "Acces_Denied";
+       OUTPUT_Function = "Access_Denied";
      }
 
     return OUTPUT_Function;
@@ -251,40 +250,54 @@ String InputPlainCode(String inputPack){
 }
 
 
-/*
-String InputCommand(String inputPack){
 
-  String PlainPackage[6];
-  String OUTPUT_Function;
-  String User_From_Command;
-  int CountNumberCommand = 0;
-  bool Accepeted = false;
-  bool root_permission = false;
-  
-  inputPack = " " + inputPack; //correção de syntax_input
-     
-  while (inputPack.length() > 0)
-   {  int index = inputPack.indexOf(' ');
-      if (index == -1){
-      PlainPackage[CountNumberCommand] = inputPack;
-      break;
-      } else {
-      PlainPackage[CountNumberCommand] = inputPack.substring(0, index);
-      inputPack = inputPack.substring(index+1);
-      }
-    CountNumberCommand++;
-    }
-   
-  String ReceivedKeyChallenge = PlainPackage[1]; 
-  String Command = PlainPackage[2]; 
-  String Condition_1 = PlainPackage[3]; 
-  String Condition_2 = PlainPackage[4]; 
-  String Condition_3 = PlainPackage[5]; 
+String InputCommand(String allowed){ // syntax == InputCommand(InputPlainCode(requisition_package));
+
+  String command_response = ""; // TEM QUE BOTAR SUBCLASSES
     
+    if (allowed == "Access_Granted"){
 
-*/
+        String root_enable = CommandList[1];
+        String Command = CommandList[2];
+        String Condition_1 = CommandList[3];
+        String Condition_2 = CommandList[4];
+        String Condition_3 = CommandList[5];
 
+        Serial.println(Command);
+        
+          if (Command = 'ROOT?'){
+           
+              command_response = root_enable;
+  
+            } else if (Command = 'PINOUT?'){
+              
+              if (Condition_1 = 'HIGH'){
 
+                command_response = "powering_pins:ieulásei?";
+               
+                } else {
+                  command_response = "Syntax Error!";
+                }
+              
+            
+            } else {
+              
+              command_response = "Syntax Error!";
+            
+            }
+          
+        
+        
+    } else {
+          
+          command_response = "Access_Denied!";
+       
+        }
+       
+  return command_response;
+
+}
+  
 
 void GeneratePUBKEY(){
   
