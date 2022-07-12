@@ -5,7 +5,8 @@ IGNUM IGNUM;
 
 String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
 String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
-  
+
+String RootKey, Command, Cond1, Cond2, Cond3;
 
 void setup() {
 
@@ -24,7 +25,7 @@ void loop() {
   
   if ( Termial != ""){ 
       Serial.println(" ");  
-      Serial.println(InputCommand(IGNUM.InputPlainCode(Termial)));
+      Serial.println(filterCommand(IGNUM.InputPlainCode(Termial)));
       IGNUM_RELOAD();
   }
 
@@ -50,46 +51,31 @@ void IGNUM_RELOAD() {
 
 
 
-String InputCommand(bool allowed){
+String filterCommand(bool allowed){
 
-  // syntax = InputCommand(InputPlainCode(plain_requisition_package));
+  // syntax = filterCommand(InputPlainCode(plain_requisition_package));
 
   String command_response = "";
 
-  String RootKey = IGNUM.GetRxRootKey();
-  String Command = IGNUM.GetRxCommand();
-  String Cond1 = IGNUM.GetRxCondit1();
-  String Cond2 = IGNUM.GetRxCondit2();
-  String Cond3 = IGNUM.GetRxCondit3();
+  RootKey = (IGNUM.GetRxRootKey()).c_str();
+  Command = (IGNUM.GetRxCommand()).c_str();
+  Cond1 = (IGNUM.GetRxCondit1()).c_str();
+  Cond2 = (IGNUM.GetRxCondit2()).c_str();
+  Cond3 = (IGNUM.GetRxCondit3()).c_str();
   IGNUM.EndRxCommand();     
 
     /// FROM THIS PART DOWN NEED TO REMAKE
     
-        if (allowed == 1){
+    if (allowed){
 
            Serial.println(Command);
            Serial.println(Cond1);
            Serial.println(Cond2);
            Serial.println(Cond3);
-           
-           if (Command.c_str() == "ROOT?"){
-             command_response = RootKey;
-           }
-           else if (Command.c_str() == "PINOUT"){
-             command_response = "VAI TAFAREU";
-           }
-           
-           
-           
-           
-           //if (strcmp (Command, "PINOUT")){
-           //  return "PINAS COLADAS";
-           //}
-           
-           else {command_response = "Syntax_Error!";}
-            
+           command_response = inputCommand();
+          
     } else {
-               
+           
     command_response = "Access_Denied!";
        
     }
@@ -97,6 +83,30 @@ String InputCommand(bool allowed){
     return command_response;
 
 }
+
+
+String inputCommand(){
+
+  if (Command == "ROOT?"){
+
+    return RootKey; 
+    
+    }
+
+  else if(Command == "PINOUT"){
+    
+    return "pinoutbuai";
+    
+    }
+  
+  
+    else {return "Syntax_Error!";}
+
+}
+
+
+
+
 
   
 
