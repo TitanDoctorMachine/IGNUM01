@@ -5,21 +5,23 @@
 
 class IGNUM{
       public:
-            
+
+      String GetChallenge();
+      
       bool GetRxValid();
       String GetRxRootKey();
       String GetRxCommand();
       String GetRxCondit1();
       String GetRxCondit2();
       String GetRxCondit3();
-      void EndRxCommand();
+      void EndRxCommand(); //CLEAN LOADED COMMAND
 
-      bool InputPlainCode(String inputPack);
-      void ValidateLoadedUsers();
-      void loadUsers(String usrsFile, String rootFile);
-      String NewChallenge();
-      void begin();
-      void SustainLoop();
+      void SustainLoop(); //LOOP
+      void begin(); // 1
+      String NewChallenge(); // 2
+      void loadUsers(String usrsFile, String rootFile); // 3
+      void ValidateLoadedUsers(); // 4
+      bool InputPlainCode(String inputPack); // 5
 
 };
 

@@ -1,6 +1,4 @@
-#include "FS.h"
 #include "IGNUM01_AUTH_DECODER.h"
-//#include "SpartanFileManager.h"
 
 IGNUM IGNUM;
 
@@ -19,33 +17,42 @@ void setup() {
 
 void loop() {
   
-  delay (5);
   IGNUM.SustainLoop(); //to RNG function
+  
   String Termial = Serial.readString();
+  
   if ( Termial != ""){ 
-  Serial.println(" ");  
-  Serial.println(InputCommand(IGNUM.InputPlainCode(Termial)));
-  IGNUM_RELOAD();
+      Serial.println(" ");  
+      Serial.println(InputCommand(IGNUM.InputPlainCode(Termial)));
+      IGNUM_RELOAD();
   }
+
+  delay (100);
 
 }
 
 void IGNUM_RELOAD() {
+
+  Serial.println("\n---------------------------------DEBUG_MODE---------------------------------\n ");
+
+  IGNUM.NewChallenge();
+  IGNUM.loadUsers(User_Group, Root_Group);
+  IGNUM.ValidateLoadedUsers();
+
+  Serial.println("\n---------------------------------DEBUG_MODE---------------------------------\n ");
   
   Serial.println(" ");
   Serial.println("ChallengeKey:");
-  String outerSTRKeyChallenge = IGNUM.NewChallenge();
-  Serial.println(outerSTRKeyChallenge);
-
-  IGNUM.loadUsers(User_Group, Root_Group);
-  IGNUM.ValidateLoadedUsers();
-  
+  Serial.println(IGNUM.GetChallenge());
+    
 }
 
 
 
-String InputCommand(bool allowed){ // syntax == InputCommand(InputPlainCode(requisition_package));
-  
+String InputCommand(bool allowed){
+
+  // syntax = InputCommand(InputPlainCode(plain_requisition_package));
+
   String command_response = "";
 
   String RootKey = IGNUM.GetRxRootKey();
@@ -57,14 +64,17 @@ String InputCommand(bool allowed){ // syntax == InputCommand(InputPlainCode(requ
 
     /// FROM THIS PART DOWN NEED TO REMAKE
     
-    
-    if (allowed == 1){
+        if (allowed == 1){
 
-           Serial.println(Command);
+           //Serial.println(Command);
            
-           //if (Command == "ROOT?"){
-           //  return RootKey;
-           // }
+           if (Command == "ROOT?"){
+             return RootKey;
+            }
+           
+           if (Command == "PINOUT"){
+             return "PINAS COLADAS";
+            }
       
            return "Syntax_Error!";
             

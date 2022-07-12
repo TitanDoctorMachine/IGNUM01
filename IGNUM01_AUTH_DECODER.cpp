@@ -14,24 +14,24 @@ String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32]
 
 void IGNUM::begin(){
   
-  RNG.begin("fdbgorenjgkrng"); //mudar para uma hardware key
+  RNG.begin("fdbgorenjgkrng"); //CHANGE TO HARDWARE KWY
   RNG.rand(Challenge, 10);
   
   }
 
 
-void IGNUM::SustainLoop(){
+void IGNUM::SustainLoop(){ // LOOP FUNCTION
     RNG.loop();
    }
 
-String IGNUM::NewChallenge() { //COMMAND NEW CHALLENGE
+String IGNUM::NewChallenge() { //GENERATE NEW CHALLENGE
   
   String internalSTRKeyChallenge = "";
-  RNG.rand(Challenge, 32); //gera pseudo random de 32 bytes // i wanna see chaos
+  RNG.rand(Challenge, 32); // i wanna see chaos
   
   sha256.reset();
   sha256.update(Challenge, 32);
-  sha256.finalize(Challenge, 32); //dá a saída hash na própria var -- 32 by == 256 bits
+  sha256.finalize(Challenge, 32); //RELOAD 256 HASH TO 256 RAND GENERATED
 
   for (int i = 0; i != 32; i++) {
     if(Challenge[i] < 0x10) {
@@ -44,14 +44,12 @@ String IGNUM::NewChallenge() { //COMMAND NEW CHALLENGE
 }
 
 
-
-
-void IGNUM::loadUsers(String usrsFile, String rootFile){ // COMMAND LOAD USERS
+void IGNUM::loadUsers(String usrsFile, String rootFile){ //LOAD USERS FROM EXTERNAL FONTS
 
   String loadedUsers = usrsFile + " \0"; //correção de syntax_input
   String loadedUsersRoot = rootFile + " \0"; //correção de syntax_input
      
-  //load normal users
+  //LOAD NORMAL USERS
   int CountNumber = 0;
   while (loadedUsers.length() > 0){  
       int index = loadedUsers.indexOf(' ');
@@ -70,7 +68,7 @@ void IGNUM::loadUsers(String usrsFile, String rootFile){ // COMMAND LOAD USERS
   
   
   
-  //load root usersRootUsers
+  //LOAD ROOT USERS
   int CountNumber1 = 0;
   while (loadedUsersRoot.length() > 0){  
       int index = loadedUsersRoot.indexOf(' ');
@@ -89,7 +87,7 @@ void IGNUM::loadUsers(String usrsFile, String rootFile){ // COMMAND LOAD USERS
 
 
 
-void IGNUM::ValidateLoadedUsers(){ //COMMAND VALIDATE USERS
+void IGNUM::ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
    
 
   for(int i = 0; i < last_User; i++){
@@ -128,8 +126,8 @@ void IGNUM::ValidateLoadedUsers(){ //COMMAND VALIDATE USERS
         ValidTokens[i] += String (UserSessionid[x], HEX);
       }
     
-  Serial.print("User: ");
-  Serial.println(Users[i]);
+  Serial.print("User: ");//DEBUG
+  Serial.println(Users[i]);//DEBUG
   Serial.print("UserHash: ");//DEBUG
   Serial.println(UsersHash[i]);//DEBUG
   Serial.print("UserToken: ");//DEBUG
@@ -142,7 +140,9 @@ void IGNUM::ValidateLoadedUsers(){ //COMMAND VALIDATE USERS
 
 
 
-bool IGNUM::InputPlainCode(String inputPack){ ///Syntax = ValidUserToken command cond1 cond2 cond3 SALT //COMMAND INPUT PLAIN CODE
+bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
+ 
+  ///Syntax = ValidUserToken command cond1 cond2 cond3 SALT 
 
   CommandList[0] = "";
   String PlainPackage[6];
@@ -176,9 +176,7 @@ bool IGNUM::InputPlainCode(String inputPack){ ///Syntax = ValidUserToken command
      if (ValidTokens[i] == ReceivedKeyChallenge){
 
       Accepeted = true;
-
-      OUTPUT_Function += "\n"; //DEBUG
-      
+    
       User_From_Command = Users[i];
 
         for (int y = 0; y != last_Root_user+1; y++){        
@@ -213,6 +211,11 @@ bool IGNUM::InputPlainCode(String inputPack){ ///Syntax = ValidUserToken command
 
 
 //COMMANDS TO LOAD VALUES FROM COMMANDS
+void IGNUM::EndRxCommand(){
+  for(int y = 0; y != 6; y++){
+  CommandList[y] = " ";
+  }
+}
 
 bool IGNUM::GetRxValid() {return ValidCommand;} 
 String IGNUM::GetRxRootKey(){return CommandList[1];}
@@ -220,4 +223,4 @@ String IGNUM::GetRxCommand(){return CommandList[2];}
 String IGNUM::GetRxCondit1(){return CommandList[3];}
 String IGNUM::GetRxCondit2(){return CommandList[4];}
 String IGNUM::GetRxCondit3(){return CommandList[5];}
-void IGNUM::EndRxCommand(){CommandList[0] = "";}
+String IGNUM::GetChallenge() {return STRKeyChallenge;}
