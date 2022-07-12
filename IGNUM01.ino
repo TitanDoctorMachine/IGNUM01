@@ -1,17 +1,8 @@
-#include <SHA256.h>
-#include <Crypto.h>
-#include <RNG.h>
-#include <cstring>
 #include "FS.h"
+#include "IGNUM01_AUTH_DECODER.h"
 //#include "SpartanFileManager.h"
 
-
-SHA256 sha256, userhash;
-
-bool ValidCommand = 0;
-int last_User, last_Root_user;
-byte UserSessionid[32], Challenge[32];
-String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32], CommandList[5];
+IGNUM IGNUM;
 
 String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
 String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
@@ -19,253 +10,37 @@ String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // 
 
 void setup() {
 
-  SPIFFS.begin();
-  RNG.begin("teste"); //mudar para uma hardware key
-  RNG.rand(Challenge, 10);
   Serial.begin(115200);
   Serial.println(" ");
+  IGNUM.begin();
+  IGNUM_RELOAD();
 
-  Start_New_Session();
 }
 
 void loop() {
   
   delay (5);
-  RNG.loop();
-
+  IGNUM.SustainLoop(); //to RNG function
   String Termial = Serial.readString();
   if ( Termial != ""){ 
-  ValidCommand = InputPlainCode(Termial);
-  InputCommand(ValidCommand);
-  Serial.println(InputCommand(ValidCommand));
-
-  
-  Start_New_Session();
+  Serial.println(" ");  
+  Serial.println(InputCommand(IGNUM.InputPlainCode(Termial)));
+  IGNUM_RELOAD();
   }
-
 
 }
 
-void Start_New_Session() {
-
+void IGNUM_RELOAD() {
+  
   Serial.println(" ");
   Serial.println("ChallengeKey:");
-  STRKeyChallenge = NewChallenge();
-  Serial.println(STRKeyChallenge);
+  String outerSTRKeyChallenge = IGNUM.NewChallenge();
+  Serial.println(outerSTRKeyChallenge);
 
-  loadUsers(User_Group, Root_Group);
-  ValidateLoadedUsers();
-  
-  }
-
-
-String NewChallenge() {
-  
-  String internalSTRKeyChallenge = "";
-  RNG.rand(Challenge, 32); //gera pseudo random de 32 bytes // i wanna see chaos
-  
-  sha256.reset();
-  sha256.update(Challenge, 32);
-  sha256.finalize(Challenge, 32); //dá a saída hash na própria var -- 32 by == 256 bits
-
-  for (int i = 0; i != 32; i++) {
-    if(Challenge[i] < 0x10) {
-      internalSTRKeyChallenge += '0';
-    }
-    internalSTRKeyChallenge += String (Challenge[i], HEX);
-    }
-     
-    return internalSTRKeyChallenge;  
-}
-
-
-void loadUsers(String usrsFile, String rootFile){
-
-  String loadedUsers = usrsFile + " \0"; //correção de syntax_input
-  String loadedUsersRoot = rootFile + " \0"; //correção de syntax_input
-     
-  //load normal users
-  int CountNumber = 0;
-  while (loadedUsers.length() > 0){  
-      int index = loadedUsers.indexOf(' ');
-      if (index == -1){
-      Users[CountNumber] = loadedUsers; // load to user[32]
-      break;
-      } else {
-      Users[CountNumber] = loadedUsers.substring(0, index); // load to user[32]
-      loadedUsers = loadedUsers.substring(index+1);
-      //Serial.println("users:");
-      //Serial.println(Users[CountNumber]); DEBUG
-      }
-   CountNumber++;
-   }
-   last_User = CountNumber;
-  
-  
-  
-  //load root usersRootUsers
-  int CountNumber1 = 0;
-  while (loadedUsersRoot.length() > 0){  
-      int index = loadedUsersRoot.indexOf(' ');
-      if (index == -1){
-      RootUsers[CountNumber1] = loadedUsersRoot; // load to user[32]
-      break;
-      } else {
-      RootUsers[CountNumber1] = loadedUsersRoot.substring(0, index); // load to user[32]
-      loadedUsersRoot = loadedUsersRoot.substring(index+1);
-      //Serial.println("Root:");
-      //Serial.println(RootUsers[CountNumber1]); DEBUG
-      }
-   CountNumber1++;
-   }
-   last_Root_user = CountNumber1;
-   
-}
-
-
-
-void ValidateLoadedUsers(){
-  
-  //Generate Users
- 
-  for(int i = 0; i < last_User; i++){
-    
-    UsersHash[i] = "";
-     
-    const char* usernow = Users[i].c_str();
-    userhash.reset();
-    userhash.update(usernow, strlen(usernow));
-    userhash.finalize(UserSessionid, 32);
-
-    String UserSessionidstr;
-    for (int x = 0; x != 32; x++) {
-      if(UserSessionid[x] < 0x10) { 
-         UsersHash[i] += '0';
-      }
-      UsersHash[i] += String (UserSessionid[x], HEX);
-    }    
-
-    //Generate Token
-    
-      String Auth = STRKeyChallenge + UsersHash[i];
-    
-      const char* UserAuth = Auth.c_str();
-      
-      userhash.reset();
-      userhash.update(UserAuth, strlen(UserAuth));
-      userhash.finalize(UserSessionid, 32);
-      
-      ValidTokens[i] = "";
-      
-      for (int x = 0; x != 32; x++) {
-      if(UserSessionid[x] < 0x10) {
-        ValidTokens[i] += '0';
-      }
-        ValidTokens[i] += String (UserSessionid[x], HEX);
-      }
-    
-  Serial.print("User: ");
-  Serial.println(Users[i]);
-  Serial.print("UserHash: ");//DEBUG
-  Serial.println(UsersHash[i]);//DEBUG
-  Serial.print("UserToken: ");//DEBUG
-  Serial.println(ValidTokens[i]);//DEBUG  
-  
-  
-  }  
+  IGNUM.loadUsers(User_Group, Root_Group);
+  IGNUM.ValidateLoadedUsers();
   
 }
-
-
-
-void InputCypherCode(){
-  
-  }
-
-
-bool InputPlainCode(String inputPack){
-
-  CommandList[0] = "";
-  String PlainPackage[5];
-  bool OUTPUT_Function = 0;
-  String User_From_Command;
-  int CountNumberCommand = 0;
-  bool Accepeted = false;
-  bool root_permission = false;
-  
-  inputPack = " " + inputPack; //correção de syntax_input
-     
-  while (inputPack.length() > 0)
-   {  int index = inputPack.indexOf(' ');
-      if (index == -1){
-      PlainPackage[CountNumberCommand] = inputPack;
-      break;
-      } else {
-      PlainPackage[CountNumberCommand] = inputPack.substring(0, index);
-      inputPack = inputPack.substring(index+1);
-      }
-    CountNumberCommand++;
-    }
-   
-  String ReceivedKeyChallenge = PlainPackage[1]; 
-  String Command = PlainPackage[2]; 
-  String Condition_1 = PlainPackage[3]; 
-  String Condition_2 = PlainPackage[4]; 
-  String Condition_3 = PlainPackage[5]; 
-    
-  for (int i = 0; i != last_User; i++){
-     if (ValidTokens[i] == ReceivedKeyChallenge){
-
-      Accepeted = true;
-
-      OUTPUT_Function += "\n"; //DEBUG
-      
-      User_From_Command = Users[i];
-
-        for (int y = 0; y != last_Root_user+1; y++){        
-            if (User_From_Command == RootUsers[y]){
-              root_permission = true;
-            }
-        }
-     }
-  }
-  
-  if (Accepeted){
-
-      OUTPUT_Function = 1;
-      
-      if (root_permission){
-      CommandList[1] = "root:true";
-      } else {
-      CommandList[1] = "root:false";
-      }           
-      CommandList[2] = Command; 
-      CommandList[3] = Condition_1; 
-      CommandList[4] = Condition_2;
-      CommandList[5] = Condition_3;
-      
-     } else {
-       OUTPUT_Function = 0;
-     }
-
-    return OUTPUT_Function;
-
-}
-
-bool GetRxValid() {return ValidCommand;} 
-String GetRxRootKey(){ return CommandList[1];}
-String GetRxCommand(){ return CommandList[2];}
-String GetRxCondit1(){ return CommandList[3];}
-String GetRxCondit2(){ return CommandList[4];}
-String GetRxCondit3(){ return CommandList[5];}
-void EndRxCommand(){
-    CommandList[1] = " ";
-    CommandList[2] = " ";
-    CommandList[3] = " ";
-    CommandList[4] = " ";
-    CommandList[5] = " ";
-}
-
 
 
 
@@ -273,50 +48,41 @@ String InputCommand(bool allowed){ // syntax == InputCommand(InputPlainCode(requ
   
   String command_response = "";
 
-  String RootKey = GetRxRootKey();
-  String Command = GetRxCommand();
-  String Cond1 = GetRxCondit1();
-  String Cond2 = GetRxCondit2();
-  String Cond3 = GetRxCondit3();
-  EndRxCommand();     
+  String RootKey = IGNUM.GetRxRootKey();
+  String Command = IGNUM.GetRxCommand();
+  String Cond1 = IGNUM.GetRxCondit1();
+  String Cond2 = IGNUM.GetRxCondit2();
+  String Cond3 = IGNUM.GetRxCondit3();
+  IGNUM.EndRxCommand();     
 
     /// FROM THIS PART DOWN NEED TO REMAKE
     
     
     if (allowed == 1){
 
-          Serial.println(Command);
-          Serial.println(GetRxCommand());
-          
-          if (Command = 'ROOT?'){
+           Serial.println(Command);
            
-              command_response = RootKey;
-                 
-
-            } else if (Command = 'PINOUT'){
-              
-              if (Cond1 = 'HIGH'){
-
-                command_response = "powering_pins:ieulásei?";
-                     
-                }
-              
-            
-            } else {
-             command_response = "Syntax_Error!";
-            }
+           //if (Command == "ROOT?"){
+           //  return RootKey;
+           // }
+      
+           return "Syntax_Error!";
             
     } else {
-          
-             command_response = "Access_Denied!";
+               
+    return "Access_Denied!";
        
-           }
-
-  return command_response;
+    }
 
 }
+
   
 
 void GeneratePUBKEY(){
   
-  }
+}
+
+void InputCypherCode(){
+  
+}
+  
