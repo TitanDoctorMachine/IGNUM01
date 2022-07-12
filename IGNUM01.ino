@@ -1,4 +1,5 @@
 #include "IGNUM01_AUTH_DECODER.h"
+#include <cstring>
 
 IGNUM IGNUM;
 
@@ -66,23 +67,34 @@ String InputCommand(bool allowed){
     
         if (allowed == 1){
 
-           //Serial.println(Command);
+           Serial.println(Command);
+           Serial.println(Cond1);
+           Serial.println(Cond2);
+           Serial.println(Cond3);
            
-           if (Command == "ROOT?"){
-             return RootKey;
-            }
+           if (Command.c_str() == "ROOT?"){
+             command_response = RootKey;
+           }
+           else if (Command.c_str() == "PINOUT"){
+             command_response = "VAI TAFAREU";
+           }
            
-           if (Command == "PINOUT"){
-             return "PINAS COLADAS";
-            }
-      
-           return "Syntax_Error!";
+           
+           
+           
+           //if (strcmp (Command, "PINOUT")){
+           //  return "PINAS COLADAS";
+           //}
+           
+           else {command_response = "Syntax_Error!";}
             
     } else {
                
-    return "Access_Denied!";
+    command_response = "Access_Denied!";
        
     }
+
+    return command_response;
 
 }
 

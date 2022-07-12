@@ -100,7 +100,7 @@ void IGNUM::ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
     userhash.finalize(UserSessionid, 32);
 
     String UserSessionidstr;
-    for (int x = 0; x != 32; x++) {
+    for (int x = 0; x < 32; x++) {
       if(UserSessionid[x] < 0x10) { 
          UsersHash[i] += '0';
       }
@@ -119,7 +119,7 @@ void IGNUM::ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
       
       ValidTokens[i] = "";
       
-      for (int x = 0; x != 32; x++) {
+      for (int x = 0; x < 32; x++) {
       if(UserSessionid[x] < 0x10) {
         ValidTokens[i] += '0';
       }
