@@ -1,5 +1,4 @@
 # IGNUM01
 Aplication layer protocol for IOT devices
-
-Tem q atualizar aki depos
+Still in developing, and after finished will developed an esp8266 firmware for common use
 

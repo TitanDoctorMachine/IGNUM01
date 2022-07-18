@@ -171,7 +171,7 @@ bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
   String Condition_1 = PlainPackage[3]; 
   String Condition_2 = PlainPackage[4]; 
   String Condition_3 = PlainPackage[5]; 
-    
+      
   for (int i = 0; i != last_User; i++){
      if (ValidTokens[i] == ReceivedKeyChallenge){
 
