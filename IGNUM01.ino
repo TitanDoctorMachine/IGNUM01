@@ -7,7 +7,6 @@ String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivec
 String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
 String Commands[16] ={"ROOT? ", "PINOUT", "NEWTASK"}; 
 
-String RootKey, Command, Cond1, Cond2, Cond3;
 
 void setup() {
 
@@ -56,8 +55,7 @@ void IGNUM_RELOAD() {
 String inputCommand(bool allowed){
   //Serial.println(allowed);
   // syntax = filterCommand(InputPlainCode(plain_requisition_package));
-
-  String command_response = "";
+  String RootKey, Command, Cond1, Cond2, Cond3, command_response;
 
   RootKey = IGNUM.GetRxRootKey();
   Command = IGNUM.GetRxCommand();
@@ -80,24 +78,21 @@ String inputCommand(bool allowed){
            Serial.println(Cond2);
            Serial.println(Cond3);
            
+          /// WHY NOT WORKING!?!? AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHH!!!!!!!!!!!!!!!!
+
+           
            for(int X = 0; X != 17; X++){
-               if (Command.c_str() == Commands[X].c_str()){ /// WHY NOT WORKING?!
-
-                  //command_response = Commands[X]; /// again not working
-                  Serial.println("KABOOM?");
-                  Serial.println(Commands[X]);
-
-                  /*
+               if (Command.compareTo(Commands[X])){ 
+                
                   switch(X){
                     case 1:
-                      command_response = RootKey;
+                      return RootKey;
                     break;
                   
                     case 2:
                       return "Pinout";
                     break;
                   }
-                  */
                }
            } 
           
@@ -106,7 +101,7 @@ String inputCommand(bool allowed){
     
     
 
-    return command_response; // why?
+    return "Syntax_Error!";
 
 }
   
