@@ -5,7 +5,7 @@ IGNUM IGNUM;
 
 String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
 String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
-String Commands[16] ={"ROOT?", "PINOUT", "NEWTASK"}; 
+String Commands[16] ={"ROOT? ", "PINOUT", "NEWTASK"}; 
 
 String RootKey, Command, Cond1, Cond2, Cond3;
 
@@ -13,7 +13,7 @@ void setup() {
 
   Serial.begin(115200);
   Serial.println(" ");
-  Serial.println("Starting_System");
+  Serial.println("Starting_System...");
   IGNUM.begin();
   IGNUM_RELOAD();
 
@@ -73,14 +73,18 @@ String inputCommand(bool allowed){
     
     else if (allowed = 1){
 
+           Serial.println("Access_Granted!");
+           Serial.println(" ");
            Serial.println(Command);
-           //Serial.println(Cond1);
-           // Serial.println(Cond2);
-           // Serial.println(Cond3);
+           Serial.println(Cond1);
+           Serial.println(Cond2);
+           Serial.println(Cond3);
            
            for(int X = 0; X != 17; X++){
-               if (Command == Commands[X]){
-                  command_response = Commands[X]; /// again not working
+               if (Command.c_str() == Commands[X].c_str()){ /// WHY NOT WORKING?!
+
+                  //command_response = Commands[X]; /// again not working
+                  Serial.println("KABOOM?");
                   Serial.println(Commands[X]);
 
                   /*
