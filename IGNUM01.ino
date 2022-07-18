@@ -5,6 +5,7 @@ IGNUM IGNUM;
 
 String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
 String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
+String Commands[16] ={"ROOT?", "PINOUT", "NEWTASK"}; 
 
 String RootKey, Command, Cond1, Cond2, Cond3;
 
@@ -12,6 +13,7 @@ void setup() {
 
   Serial.begin(115200);
   Serial.println(" ");
+  Serial.println("Starting_System");
   IGNUM.begin();
   IGNUM_RELOAD();
 
@@ -25,7 +27,7 @@ void loop() {
   
   if ( Termial != ""){ 
       Serial.println(" ");  
-      Serial.println(filterCommand(IGNUM.InputPlainCode(Termial)));
+      Serial.println(inputCommand(IGNUM.InputPlainCode(Termial)));
       IGNUM_RELOAD();
   }
 
@@ -51,63 +53,58 @@ void IGNUM_RELOAD() {
 
 
 
-String filterCommand(bool allowed){
-
+String inputCommand(bool allowed){
+  //Serial.println(allowed);
   // syntax = filterCommand(InputPlainCode(plain_requisition_package));
 
   String command_response = "";
 
-  RootKey = (IGNUM.GetRxRootKey()).c_str();
-  Command = (IGNUM.GetRxCommand()).c_str();
-  Cond1 = (IGNUM.GetRxCondit1()).c_str();
-  Cond2 = (IGNUM.GetRxCondit2()).c_str();
-  Cond3 = (IGNUM.GetRxCondit3()).c_str();
+  RootKey = IGNUM.GetRxRootKey();
+  Command = IGNUM.GetRxCommand();
+  Cond1 = IGNUM.GetRxCondit1();
+  Cond2 = IGNUM.GetRxCondit2();
+  Cond3 = IGNUM.GetRxCondit3();
   IGNUM.EndRxCommand();     
 
     /// FROM THIS PART DOWN NEED TO REMAKE
+    if(!allowed) {
+    Serial.println("Access_Denied!");
+    }
     
-    if (allowed){
+    else if (allowed = 1){
 
            Serial.println(Command);
-           Serial.println(Cond1);
-           Serial.println(Cond2);
-           Serial.println(Cond3);
-           command_response = inputCommand();
-          
-    } else {
+           //Serial.println(Cond1);
+           // Serial.println(Cond2);
+           // Serial.println(Cond3);
            
-    command_response = "Access_Denied!";
-       
-    }
+           for(int X = 0; X != 17; X++){
+               if (Command == Commands[X]){
+                  command_response = Commands[X]; /// again not working
+                  Serial.println(Commands[X]);
 
-    return command_response;
+                  /*
+                  switch(X){
+                    case 1:
+                      command_response = RootKey;
+                    break;
+                  
+                    case 2:
+                      return "Pinout";
+                    break;
+                  }
+                  */
+               }
+           } 
+          
+    
+    } 
+    
+    
+
+    return command_response; // why?
 
 }
-
-
-String inputCommand(){
-
-  if (Command == "ROOT?"){
-
-    return RootKey; 
-    
-    }
-
-  else if(Command == "PINOUT"){
-    
-    return "pinoutbuai";
-    
-    }
-  
-  
-    else {return "Syntax_Error!";}
-
-}
-
-
-
-
-
   
 
 void GeneratePUBKEY(){
