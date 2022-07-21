@@ -5,8 +5,6 @@ IGNUM IGNUM;
 
 String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
 String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
-String Commands[16] ={"ROOT? ", "PINOUT", "NEWTASK"}; 
-
 
 void setup() {
 
@@ -53,10 +51,13 @@ void IGNUM_RELOAD() {
 
 
 String inputCommand(bool allowed){
-  //Serial.println(allowed);
-  // syntax = filterCommand(InputPlainCode(plain_requisition_package));
-  String RootKey, Command, Cond1, Cond2, Cond3, command_response;
 
+  // syntax = filterCommand(InputPlainCode(plain_requisition_package));
+  String Commands[16] ={"ROOT?", "PINOUT", "NEWTASK"}; 
+
+  String RootKey, Command, Cond1, Cond2, Cond3, command_response, teste;
+
+  teste = "FOI?";
   RootKey = IGNUM.GetRxRootKey();
   Command = IGNUM.GetRxCommand();
   Cond1 = IGNUM.GetRxCondit1();
@@ -66,25 +67,23 @@ String inputCommand(bool allowed){
 
     /// FROM THIS PART DOWN NEED TO REMAKE
     if(!allowed) {
-    Serial.println("Access_Denied!");
+    return "Access_Denied!";
     }
     
     else if (allowed = 1){
 
+           //DEBUGGING
            Serial.println("Access_Granted!");
            Serial.println(" ");
-           Serial.println(Command);
-           Serial.println(Cond1);
-           Serial.println(Cond2);
-           Serial.println(Cond3);
-           
-          /// WHY NOT WORKING!?!? AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHH!!!!!!!!!!!!!!!!
-
-           
-           for(int X = 0; X != 17; X++){
-               if (Command.compareTo(Commands[X])){ 
-                
-                  switch(X){
+           //Serial.println(Command);
+           //Serial.println(Cond1);
+           //Serial.println(Cond2);
+           //Serial.println(Cond3);
+                 
+            for(int X = 0; X != 17; X++){
+              if (Commands[X] != NULL){
+               if (strstr(Command.c_str(),Commands[X].c_str())){ /// used that for an non identified error, need to remake this part later;
+                  switch(X+1){
                     case 1:
                       return RootKey;
                     break;
@@ -92,16 +91,14 @@ String inputCommand(bool allowed){
                     case 2:
                       return "Pinout";
                     break;
+                  
                   }
                }
-           } 
+            }
+          } 
           
-    
-    } 
-    
-    
-
     return "Syntax_Error!";
+    } 
 
 }
   

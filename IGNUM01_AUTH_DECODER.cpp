@@ -171,12 +171,15 @@ bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
   String Condition_1 = PlainPackage[3]; 
   String Condition_2 = PlainPackage[4]; 
   String Condition_3 = PlainPackage[5]; 
-      
+  int count_empty = 0;
+  
   for (int i = 0; i != last_User; i++){
      if (ValidTokens[i] == ReceivedKeyChallenge){
 
-      Accepeted = true;
-    
+       if (Command != " "){ //Bug Fixing;
+          Accepeted = true;
+       }
+      
       User_From_Command = Users[i];
 
         for (int y = 0; y != last_Root_user+1; y++){        
