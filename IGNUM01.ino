@@ -80,8 +80,8 @@ return suboutput;
 
 String inputCommand(bool allowed){
 
-  // syntax = filterCommand(InputPlainCode(plain_requisition_package));
-
+  //Syntax = return(inputCommand(IGNUM.InputPlainCode(plain_requisition_package)));
+ 
   String RootKey, Command, Cond1, Cond2, Cond3, command_response;
 
   RootKey = IGNUM.GetRxRootKey();
@@ -91,23 +91,12 @@ String inputCommand(bool allowed){
   Cond3 = IGNUM.GetRxCondit3();
   IGNUM.EndRxCommand();     
 
-    /// FROM THIS PART DOWN NEED TO REMAKE
     if(!allowed) {
     return "Access_Denied!";
-    }
-    
-    else if (allowed = 1){
+    } else if (allowed = 1){
            String Refined_Result = "Access_Granted >> ";
-           
-           //DEBUGGING
-           //Serial.println("Access_Granted!");
-           //Serial.println(" ");
-           //Serial.println(Command);
-           //Serial.println(Cond1);
-           //Serial.println(Cond2);
-           //Serial.println(Cond3);
                  
-            for(int X = 0; X != Last_Commands_NUM(); X++){
+           for(int X = 0; X != Last_Commands_NUM(); X++){
                if (strstr(Command.c_str(),Commands[X].c_str())){ /// used that for an non identified error, need to remake this part later;
                   switch(X+1){
                     case 1:
@@ -137,7 +126,8 @@ String inputCommand(bool allowed){
             }
           } 
           
-    return "Syntax_Error!";
+    Refined_Result += "Syntax_Error!";
+    return Refined_Result;
     } 
 
 }
