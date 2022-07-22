@@ -50,7 +50,7 @@ void IGNUM_RELOAD() {
     
 }
 
-String Commands[16] = {"HELP", "ROOT?"}; //Native commands;
+String Commands[16] = {"HELP", "ROOT"}; //Native commands;
 
 int Last_Commands_NUM() {
   int result = 0;
