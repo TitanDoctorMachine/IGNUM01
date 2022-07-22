@@ -97,10 +97,11 @@ String inputCommand(bool allowed){
     }
     
     else if (allowed = 1){
-
+           String Refined_Result = "Access_Granted >> ";
+           
            //DEBUGGING
-           Serial.println("Access_Granted!");
-           Serial.println(" ");
+           //Serial.println("Access_Granted!");
+           //Serial.println(" ");
            //Serial.println(Command);
            //Serial.println(Cond1);
            //Serial.println(Cond2);
@@ -110,21 +111,25 @@ String inputCommand(bool allowed){
                if (strstr(Command.c_str(),Commands[X].c_str())){ /// used that for an non identified error, need to remake this part later;
                   switch(X+1){
                     case 1:
-                      return HelpWhatCommands();
+                      Refined_Result += "\n" + HelpWhatCommands();
+                      return Refined_Result;
                     break;
                   
                     case 2:
-                      return RootKey;
+                      Refined_Result += RootKey;
+                      return Refined_Result;
                     break;
                   
                     case 5:
                       digitalWrite(2, 0); //DEBUG
-                      return "Pinout";
+                      Refined_Result += "POWERED";
+                      return Refined_Result;
                     break;
                     
                     case 6:
                       digitalWrite(2, 1);//DEBUG
-                      return "shutded";
+                      Refined_Result += "SHUTTED";
+                      return Refined_Result;
                     break;
                   
                   
