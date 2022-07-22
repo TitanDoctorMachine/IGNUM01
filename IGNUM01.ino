@@ -4,13 +4,12 @@
 
 IGNUM IGNUM;
 
-String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file 
+//need to be self generated in next versions
+String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file
 String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
 
 void setup() {
 
-  pinMode(2, OUTPUT);
-  digitalWrite(2, 1);
   Serial.begin(115200);
   Serial.println(" ");
   Serial.println("Starting_System...");
@@ -37,13 +36,13 @@ void loop() {
 
 void IGNUM_RELOAD() {
 
-  Serial.println("\n---------------------------------DEBUG_MODE---------------------------------\n ");
+  //Serial.println("\n---------------------------------DEBUG_MODE---------------------------------\n ");
 
   IGNUM.NewChallenge();
   IGNUM.loadUsers(User_Group, Root_Group);
   IGNUM.ValidateLoadedUsers();
 
-  Serial.println("\n---------------------------------DEBUG_MODE---------------------------------\n ");
+  //Serial.println("\n---------------------------------DEBUG_MODE---------------------------------\n ");
   
   Serial.println(" ");
   Serial.println("ChallengeKey:");
@@ -51,8 +50,7 @@ void IGNUM_RELOAD() {
     
 }
 
-
-String Commands[16] = {"HELP", "ROOT?", "PINOUT", "NEWTASK", "POWERPINON", "POWERPINOFF"}; 
+String Commands[16] = {"HELP", "ROOT?"}; //Native commands;
 
 int Last_Commands_NUM() {
   int result = 0;
@@ -100,25 +98,20 @@ String inputCommand(bool allowed){
                if (strstr(Command.c_str(),Commands[X].c_str())){ /// used that for an non identified error, need to remake this part later;
                   switch(X+1){
                     case 1:
+                      //HELP
                       Refined_Result += "\n" + HelpWhatCommands();
                       return Refined_Result;
                     break;
                   
                     case 2:
+                      //ROOT?
                       Refined_Result += RootKey;
                       return Refined_Result;
                     break;
-                  
-                    case 5:
-                      digitalWrite(2, 0); //DEBUG
-                      Refined_Result += "POWERED";
-                      return Refined_Result;
-                    break;
+
+                    case 3:
+                      // Can be added as user's wish;
                     
-                    case 6:
-                      digitalWrite(2, 1);//DEBUG
-                      Refined_Result += "SHUTTED";
-                      return Refined_Result;
                     break;
                   
                   
@@ -135,13 +128,8 @@ String inputCommand(bool allowed){
   
   
   
-  
-  
-  
-  
-
-
-
+//Next Versions need to add assymetrical crypto to command, pub key will be in main page, and will need to encrypted for receiving commands;  
+    
 void GeneratePUBKEY(){
   
 }

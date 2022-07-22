@@ -126,13 +126,14 @@ void IGNUM::ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
         ValidTokens[i] += String (UserSessionid[x], HEX);
       }
     
+  /*
   Serial.print("User: ");//DEBUG
   Serial.println(Users[i]);//DEBUG
   Serial.print("UserHash: ");//DEBUG
   Serial.println(UsersHash[i]);//DEBUG
   Serial.print("UserToken: ");//DEBUG
   Serial.println(ValidTokens[i]);//DEBUG  
-  
+  */
   
   }  
   
