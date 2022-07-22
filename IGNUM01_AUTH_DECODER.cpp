@@ -142,7 +142,7 @@ void IGNUM::ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
 
 bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
  
-  ///Syntax = ValidUserToken command cond1 cond2 cond3 SALT 
+  ///Syntax = ValidUserToken+$$+command+$$+cond1+$$+cond2+$$+cond3+$$+SALT 
 
   CommandList[0] = "";
   String PlainPackage[6];
@@ -152,6 +152,7 @@ bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
   bool Accepeted = false;
   bool root_permission = false;
   
+  inputPack.replace("$$", " ");
   inputPack = " " + inputPack; //correção de syntax_input
      
   while (inputPack.length() > 0)
@@ -171,7 +172,6 @@ bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
   String Condition_1 = PlainPackage[3]; 
   String Condition_2 = PlainPackage[4]; 
   String Condition_3 = PlainPackage[5]; 
-  int count_empty = 0;
   
   for (int i = 0; i != last_User; i++){
      if (ValidTokens[i] == ReceivedKeyChallenge){

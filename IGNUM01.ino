@@ -1,5 +1,6 @@
 #include "IGNUM01_AUTH_DECODER.h"
 #include <cstring>
+#include <string>
 
 IGNUM IGNUM;
 
@@ -8,6 +9,8 @@ String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // 
 
 void setup() {
 
+  pinMode(2, OUTPUT);
+  digitalWrite(2, 1);
   Serial.begin(115200);
   Serial.println(" ");
   Serial.println("Starting_System...");
@@ -49,15 +52,38 @@ void IGNUM_RELOAD() {
 }
 
 
+String Commands[16] = {"HELP", "ROOT?", "PINOUT", "NEWTASK", "POWERPINON", "POWERPINOFF"}; 
+
+int Last_Commands_NUM() {
+  int result = 0;
+  for (int i = 0; i != 17; i++){
+    if (Commands[i] != ""){
+      result++;
+      } else {
+      break;  
+      }
+        
+    }
+  return result;
+}
+
+
+String HelpWhatCommands(){
+  String suboutput = "";
+  for (int k = 0; k != Last_Commands_NUM(); k++){
+    
+    suboutput += Commands[k] + "\n";
+    
+  }
+return suboutput;
+}
 
 String inputCommand(bool allowed){
 
   // syntax = filterCommand(InputPlainCode(plain_requisition_package));
-  String Commands[16] ={"ROOT?", "PINOUT", "NEWTASK"}; 
 
-  String RootKey, Command, Cond1, Cond2, Cond3, command_response, teste;
+  String RootKey, Command, Cond1, Cond2, Cond3, command_response;
 
-  teste = "FOI?";
   RootKey = IGNUM.GetRxRootKey();
   Command = IGNUM.GetRxCommand();
   Cond1 = IGNUM.GetRxCondit1();
@@ -80,19 +106,28 @@ String inputCommand(bool allowed){
            //Serial.println(Cond2);
            //Serial.println(Cond3);
                  
-            for(int X = 0; X != 17; X++){
-              if (Commands[X] != NULL){
+            for(int X = 0; X != Last_Commands_NUM(); X++){
                if (strstr(Command.c_str(),Commands[X].c_str())){ /// used that for an non identified error, need to remake this part later;
                   switch(X+1){
                     case 1:
-                      return RootKey;
+                      return HelpWhatCommands();
                     break;
                   
                     case 2:
-                      return "Pinout";
+                      return RootKey;
                     break;
                   
-                  }
+                    case 5:
+                      digitalWrite(2, 0); //DEBUG
+                      return "Pinout";
+                    break;
+                    
+                    case 6:
+                      digitalWrite(2, 1);//DEBUG
+                      return "shutded";
+                    break;
+                  
+                  
                }
             }
           } 
@@ -101,7 +136,16 @@ String inputCommand(bool allowed){
     } 
 
 }
+
   
+  
+  
+  
+  
+  
+  
+
+
 
 void GeneratePUBKEY(){
   
