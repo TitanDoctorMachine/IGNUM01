@@ -153,7 +153,7 @@ bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
   bool Accepeted = false;
   bool root_permission = false;
   
-  inputPack.replace("$$", " ");
+  inputPack.replace("//", " ");
   inputPack = " " + inputPack; //correção de syntax_input
      
   while (inputPack.length() > 0)
