@@ -143,7 +143,7 @@ void IGNUM::ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
 
 bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
  
-  ///Syntax = ValidUserToken+$$+command+$$+cond1+$$+cond2+$$+cond3+$$+SALT 
+  ///Syntax = ValidUserToken+//+command+//+cond1+//+cond2+//+cond3+//+SALT 
 
   CommandList[0] = "";
   String PlainPackage[6];
