@@ -4,18 +4,18 @@
 
 IGNUM IGNUM;
 
-//need to be self generated in next versions
-String User_Group = "docmac0522105v1418df4v15v4df8 hellodarkenssmyoldfriend ivecometotalktoyouagain andinthedarkens"; // has to be loaded by file
-String Root_Group = "docmac0522105v1418df4v15v4df8 ivecometotalktoyouagain"; // has to be loaded by file
+String Server_State;
 
 void setup() {
 
   Serial.begin(115200);
   Serial.println(" ");
   Serial.println("Starting_System...");
-  IGNUM.begin();
-  IGNUM_RELOAD();
-
+  Server_State = IGNUM.begin("normal");
+  Serial.println(" ");
+  Serial.println("ChallengeKey:");
+  Serial.println(IGNUM.GetChallenge());
+  
 }
 
 void loop() {
@@ -27,30 +27,22 @@ void loop() {
   if ( Termial != ""){ 
       Serial.println(" ");  
       Serial.println(inputCommand(IGNUM.InputPlainCode(Termial)));
-      IGNUM_RELOAD();
+      Serial.println(" ");
+      IGNUM.reload();
+      Serial.println("ChallengeKey:");
+      Serial.println(IGNUM.GetChallenge());
   }
 
   delay (100);
 
 }
 
-void IGNUM_RELOAD() {
 
-  //Serial.println("\n---------------------------------DEBUG_MODE---------------------------------\n ");
 
-  IGNUM.NewChallenge();
-  IGNUM.loadUsers(User_Group, Root_Group);
-  IGNUM.ValidateLoadedUsers();
+//FIM CAMPO DE OBRAS;
 
-  //Serial.println("\n---------------------------------DEBUG_MODE---------------------------------\n ");
-  
-  Serial.println(" ");
-  Serial.println("ChallengeKey:");
-  Serial.println(IGNUM.GetChallenge());
-    
-}
 
-String Commands[16] = {"HELP", "ROOT"}; //Native commands;
+String Commands[16] = {"HELP", "ROOT", "ADDUSER", "RESET_USERS"}; //Native commands;
 
 int Last_Commands_NUM() {
   int result = 0;
@@ -104,14 +96,23 @@ String inputCommand(bool allowed){
                     break;
                   
                     case 2:
-                      //ROOT?
+                      //ROOT
                       Refined_Result += RootKey;
                       return Refined_Result;
                     break;
 
                     case 3:
-                      // Can be added as user's wish;
-                    
+                      // ADDUSER
+                      Refined_Result += IGNUM.addUser(RootKey, Cond1, Cond2);
+                      return Refined_Result;
+                                       
+                    break;
+
+                    case 4:
+                      // RESETUSER
+                      Refined_Result +=  IGNUM.ResetUsers(RootKey);
+                      return Refined_Result;
+                                       
                     break;
                   
                   

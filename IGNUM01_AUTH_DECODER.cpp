@@ -3,28 +3,115 @@
 #include <RNG.h>
 #include <cstring>
 #include "IGNUM01_AUTH_DECODER.h"
+#include <FS.h>
 
 SHA256 sha256, userhash;
 
-bool ValidCommand = 0;
+bool ValidCommand = 0, configmode = 0;
 int last_User, last_Root_user;
 byte UserSessionid[32], Challenge[32];
-String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32], CommandList[5];
+String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32], CommandList[5], User_Group, Root_Group;
 
+void REMOVEFILE(String path){SPIFFS.remove(path);}
 
-void IGNUM::begin(){
+void WRITETOFILE(String state, String path) { 
+  
+  SPIFFS.remove(path);
+  File rFile = SPIFFS.open(path,"w+"); 
+  rFile.print(state);
+  rFile.close();
+}
+ 
+int try_read = 0;
+
+String READFILE(String path) {
+    
+  File rFile = SPIFFS.open(path,"r");
+  
+  if (!rFile) {
+       WRITETOFILE("", path);
+       try_read = 0;
+  }
+ 
+  String content = rFile.readStringUntil('\n'); //desconsidera '\r\n'
+  rFile.close();
+  return content;
+}
+
+String loadUsers(){
+  
+        if (User_Group == ""){
+          User_Group = "CONFIG_MODE";
+          Root_Group = "CONFIG_MODE";
+          configmode = 1;
+          }
+          
+        String loadedUsers = User_Group + " \0"; //syntax_input correction;
+        String loadedUsersRoot = Root_Group + " \0"; //syntax_input correction;
+           
+        //LOAD NORMAL USERS ARRAY
+        int CountNumber = 0;
+        while (loadedUsers.length() > 0){  
+            int index = loadedUsers.indexOf(' ');
+            if (index == -1){
+            Users[CountNumber] = loadedUsers; // load to user[32]
+            break;
+            } else {
+            Users[CountNumber] = loadedUsers.substring(0, index); // load to user[32]
+            loadedUsers = loadedUsers.substring(index+1);
+            //Serial.println("users:");
+            //Serial.println(Users[CountNumber]); DEBUG
+            }
+         CountNumber++;
+         }
+         last_User = CountNumber;
+        
+        //LOAD ROOT USERS ARRAY
+        int CountNumber1 = 0;
+        while (loadedUsersRoot.length() > 0){  
+            int index = loadedUsersRoot.indexOf(' ');
+            if (index == -1){
+            RootUsers[CountNumber1] = loadedUsersRoot; // load to user[32]
+            break;
+            } else {
+            RootUsers[CountNumber1] = loadedUsersRoot.substring(0, index); // load to user[32]
+            loadedUsersRoot = loadedUsersRoot.substring(index+1);
+            }
+         CountNumber1++;
+         }
+         last_Root_user = CountNumber1;
+
+    if (configmode){
+    return "Config_Mode!";
+    } else {
+    return "All_OK!";
+    }
+  
+}
+
+String IGNUM::begin(String reboot){
   
   RNG.begin("fdbgorenjgkrng"); //CHANGE TO HARDWARE KWY
   RNG.rand(Challenge, 10);
-  
+  SPIFFS.begin();
+  //uncomment this part and re-write the firmware in case of self locking outside;
+  //REMOVEFILE("/USERS.txt");
+  //REMOVEFILE("/ROOTUSERS.txt");
+  User_Group = READFILE("/USERS.txt");
+  Root_Group = READFILE("/ROOTUSERS.txt");
+  if(reboot != "reboot"){  
+  reload();
   }
-
+  
+  return loadUsers();
+        
+}
 
 void IGNUM::SustainLoop(){ // LOOP FUNCTION
     RNG.loop();
    }
 
-String IGNUM::NewChallenge() { //GENERATE NEW CHALLENGE
+String NewChallenge() { //GENERATE NEW CHALLENGE
   
   String internalSTRKeyChallenge = "";
   RNG.rand(Challenge, 32); // i wanna see chaos
@@ -44,50 +131,7 @@ String IGNUM::NewChallenge() { //GENERATE NEW CHALLENGE
 }
 
 
-void IGNUM::loadUsers(String usrsFile, String rootFile){ //LOAD USERS FROM EXTERNAL FONTS
-
-  String loadedUsers = usrsFile + " \0"; //correção de syntax_input
-  String loadedUsersRoot = rootFile + " \0"; //correção de syntax_input
-     
-  //LOAD NORMAL USERS
-  int CountNumber = 0;
-  while (loadedUsers.length() > 0){  
-      int index = loadedUsers.indexOf(' ');
-      if (index == -1){
-      Users[CountNumber] = loadedUsers; // load to user[32]
-      break;
-      } else {
-      Users[CountNumber] = loadedUsers.substring(0, index); // load to user[32]
-      loadedUsers = loadedUsers.substring(index+1);
-      //Serial.println("users:");
-      //Serial.println(Users[CountNumber]); DEBUG
-      }
-   CountNumber++;
-   }
-   last_User = CountNumber;
-  
-  
-  
-  //LOAD ROOT USERS
-  int CountNumber1 = 0;
-  while (loadedUsersRoot.length() > 0){  
-      int index = loadedUsersRoot.indexOf(' ');
-      if (index == -1){
-      RootUsers[CountNumber1] = loadedUsersRoot; // load to user[32]
-      break;
-      } else {
-      RootUsers[CountNumber1] = loadedUsersRoot.substring(0, index); // load to user[32]
-      loadedUsersRoot = loadedUsersRoot.substring(index+1);
-      }
-   CountNumber1++;
-   }
-   last_Root_user = CountNumber1;
-   
-}
-
-
-
-void IGNUM::ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
+void ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
    
 
   for(int i = 0; i < last_User; i++){
@@ -126,14 +170,14 @@ void IGNUM::ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
         ValidTokens[i] += String (UserSessionid[x], HEX);
       }
     
-  /*
+  
   Serial.print("User: ");//DEBUG
   Serial.println(Users[i]);//DEBUG
   Serial.print("UserHash: ");//DEBUG
   Serial.println(UsersHash[i]);//DEBUG
   Serial.print("UserToken: ");//DEBUG
   Serial.println(ValidTokens[i]);//DEBUG  
-  */
+  
   
   }  
   
@@ -208,10 +252,102 @@ bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
      } else {
        OUTPUT_Function = 0;
      }
-
+        
     return OUTPUT_Function;
 
 }
+
+void IGNUM::reload(){
+  
+  loadUsers();
+  NewChallenge();
+  ValidateLoadedUsers();
+  
+}
+
+String IGNUM::addUser(String credential, String level, String user){
+    
+    bool valid = true;
+    String User_Group0, Root_Group0;
+
+    if(credential != "root:true"){
+      valid = 0;
+      return "NO_ROOT!";
+    }
+      
+    for(int i = 0; i != last_User; i++){
+      if (strstr(user.c_str(),Users[i].c_str())){
+          valid = 0;                  
+          return "USER_ALREADY_EXIST!";
+        }}
+         
+        
+        
+    if (valid){ //and (user != " " or "") 
+        
+        if (level == "NORMAL"){
+          if (configmode){
+          User_Group0 = user;
+          WRITETOFILE(User_Group0,"/USERS.txt");
+          } else{
+          User_Group0 = READFILE("/USERS.txt");
+          if (User_Group0 != ""){
+          User_Group0 += " ";
+          }
+          User_Group0 += user;
+          WRITETOFILE(User_Group0,"/USERS.txt");  
+          }
+        } 
+        else if (level == "ROOT"){
+        if (configmode){
+          Root_Group0 = user;
+          User_Group0 = user;
+          WRITETOFILE(User_Group0,"/USERS.txt");
+          WRITETOFILE(Root_Group0,"/ROOTUSERS.txt");
+          } else{
+          User_Group0 = READFILE("/USERS.txt");
+          Root_Group0 = READFILE("/ROOTUSERS.txt");
+          
+          if (User_Group0 != ""){
+          User_Group0 += " ";
+          }
+          if (Root_Group0 != ""){
+          Root_Group0 += " ";
+          }
+          Root_Group0 += user;
+          User_Group0 += user;
+          WRITETOFILE(User_Group0,"/USERS.txt");
+          WRITETOFILE(Root_Group0,"/ROOTUSERS.txt");
+         }
+        
+       } 
+      
+        // ESP.restart();
+
+       if (level == "HELP"){
+          return "SYNTAX: ADDUSER//NORMAL(or ROOT)//NEWUSERNAME";
+       }
+    
+       begin("reboot");
+       return "OK!";
+    }
+}
+
+String IGNUM::ResetUsers(String credential){ //for fail-safe uses it will erase all parts;
+    
+   if(credential == "root:true"){
+
+     REMOVEFILE("/USERS.txt");
+     REMOVEFILE("/ROOTUSERS.txt");
+        
+         
+      return "WARNING! ERASING ALL USERS AND ROOT USERS! \nALL CHANGES WILL BE APPLIED IN THE NEXT BOOT, IN CONFIG MODE!";   
+            
+     } else {
+      return "NO_ROOT!";
+    }
+}
+
 
 
 //COMMANDS TO LOAD VALUES FROM COMMANDS

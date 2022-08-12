@@ -17,12 +17,12 @@ class IGNUM{
       void EndRxCommand(); //CLEAN LOADED COMMAND
 
       void SustainLoop(); //LOOP
-      void begin(); // 1
-      String NewChallenge(); // 2
-      void loadUsers(String usrsFile, String rootFile); // 3
-      void ValidateLoadedUsers(); // 4
-      bool InputPlainCode(String inputPack); // 5
-
+      String begin(String reboot); // 1
+      void reload(); // 2
+      bool InputPlainCode(String inputPack); // 3
+  
+      String addUser(String credential, String level, String user);
+      String ResetUsers(String credential);
 };
 
 
