@@ -9,8 +9,10 @@ SHA256 sha256, userhash;
 
 bool ValidCommand = 0, configmode = 0;
 int last_User, last_Root_user;
-byte UserSessionid[32], Challenge[32];
-String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32], CommandList[5], User_Group, Root_Group;
+byte UserSessionid[32], Challenge[32], BChaos_Factor[16];
+String STRKeyChallenge, UsersHash[32], ValidTokens[32], Users[32], RootUsers[32], CommandList[5], User_Group, Root_Group, Chaos_Factor = "";
+
+void IGNUM::setChaosFactor(String input){Chaos_Factor = input;}
 
 void REMOVEFILE(String path){SPIFFS.remove(path);}
 
@@ -91,7 +93,10 @@ String loadUsers(){
 
 String IGNUM::begin(String reboot){
   
-  RNG.begin("fdbgorenjgkrng"); //CHANGE TO HARDWARE KWY
+  if (Chaos_Factor == "" or Chaos_Factor == " "){
+    Chaos_Factor = "youhavetosetsomethingherebeforetheBEGINv65h41gm11gh54151m65gh1mn5gh5nm1gh964n1";
+  }
+  RNG.begin(Chaos_Factor.c_str()); //key to start RNG;
   RNG.rand(Challenge, 10);
   SPIFFS.begin();
   //uncomment this part and re-write the firmware in case of self locking outside;
@@ -114,7 +119,13 @@ void IGNUM::SustainLoop(){ // LOOP FUNCTION
 String NewChallenge() { //GENERATE NEW CHALLENGE
   
   String internalSTRKeyChallenge = "";
-  RNG.rand(Challenge, 32); // i wanna see chaos
+  RNG.rand(Challenge, 16); // 16 now, 16 from the Chaos_Factor;
+
+  Chaos_Factor.getBytes(BChaos_Factor, 16);
+  
+  for (int i = 1; i < 17; i++){
+    Challenge[i+16] = BChaos_Factor[i];   
+  }
   
   sha256.reset();
   sha256.update(Challenge, 32);

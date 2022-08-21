@@ -23,6 +23,7 @@ class IGNUM{
   
       String addUser(String credential, String level, String user);
       String ResetUsers(String credential);
+      void setChaosFactor(String input);
 };
 
 

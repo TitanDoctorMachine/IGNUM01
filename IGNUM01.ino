@@ -11,6 +11,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println(" ");
   Serial.println("Starting_System...");
+  IGNUM.setChaosFactor("maybetimeornoisepin");
   Server_State = IGNUM.begin("normal");
   Serial.println(" ");
   Serial.println("ChallengeKey:");
@@ -28,6 +29,7 @@ void loop() {
       Serial.println(" ");  
       Serial.println(inputCommand(IGNUM.InputPlainCode(Termial)));
       Serial.println(" ");
+      IGNUM.setChaosFactor("11:11:currentim?");
       IGNUM.reload();
       Serial.println("ChallengeKey:");
       Serial.println(IGNUM.GetChallenge());
