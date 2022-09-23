@@ -20,7 +20,9 @@ class IGNUM{
       String begin(String reboot); // 1
       void reload(); // 2
       bool InputPlainCode(String inputPack); // 3
-  
+      bool InputCyphercode(String CypherCode); // Crypt Input;
+
+
       String addUser(String credential, String level, String user);
       String ResetUsers(String credential);
       void setChaosFactor(String input);

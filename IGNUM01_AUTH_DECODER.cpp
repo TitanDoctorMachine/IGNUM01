@@ -4,6 +4,9 @@
 #include <cstring>
 #include "IGNUM01_AUTH_DECODER.h"
 #include <FS.h>
+#include "Base64.h"
+#include <ESP8266WiFi.h>
+
 
 SHA256 sha256, userhash;
 
@@ -28,17 +31,93 @@ int try_read = 0;
 
 String READFILE(String path) {
     
-  File rFile = SPIFFS.open(path,"r");
-  
-  if (!rFile) {
-       WRITETOFILE("", path);
-       try_read = 0;
-  }
- 
-  String content = rFile.readStringUntil('\n'); //desconsidera '\r\n'
-  rFile.close();
-  return content;
+      File rFile = SPIFFS.open(path,"r");
+      
+      if (!rFile) {
+          WRITETOFILE("", path);
+          try_read = 0;
+      }
+    
+      String content = rFile.readStringUntil('\n'); //desconsidera '\r\n'
+      rFile.close();
+      return content;
+    }
+
+
+String encrypt(String plain_data, String SymKey, String Vector){
+      
+      // AES CBC Encryption
+      //tool from Kakopappa (from Github).
+      //Modified by DocMac.
+
+      const char* Key_Man = SymKey.c_str();
+      const char* IV_Man = Vector.c_str();
+
+      int len = plain_data.length();
+      int n_blocks = len / 16 + 1;
+      uint8_t n_padding = n_blocks * 16 - len;
+      uint8_t data[n_blocks*16];
+      memcpy(data, plain_data.c_str(), len);
+      for(int i = len; i < n_blocks * 16; i++){
+        data[i] = n_padding;
+      }
+      
+      uint8_t key[16], iv[16];
+      memcpy(key, Key_Man, 16);
+      memcpy(iv, IV_Man, 16);
+
+      // encryption context
+      br_aes_big_cbcenc_keys encCtx;
+
+      // reset the encryption context and encrypt the data
+      br_aes_big_cbcenc_init(&encCtx, key, 16);
+      br_aes_big_cbcenc_run( &encCtx, iv, data, n_blocks*16 );
+
+      // Base64 encode
+      len = n_blocks*16;
+      char encoded_data[ base64_enc_len(len) ];
+      base64_encode(encoded_data, (char *)data, len);
+      
+      return String(encoded_data);
 }
+
+
+String decrypt(String encoded_data_str, String SymKey, String Vector){  
+
+      // AES CBC Decryption
+      //tool from Kakopappa (from Github).
+      //Modified by DocMac.
+
+      const char* Key_Man = SymKey.c_str();
+      const char* IV_Man = Vector.c_str();
+      
+      int input_len = encoded_data_str.length();
+      char *encoded_data = const_cast<char*>(encoded_data_str.c_str());
+      int len = base64_dec_len(encoded_data, input_len);
+      uint8_t data[ len ];
+      base64_decode((char *)data, encoded_data, input_len);
+      
+      uint8_t key[16], iv[16];
+      memcpy(key, Key_Man, 16);
+      memcpy(iv, IV_Man, 16);
+
+      int n_blocks = len / 16;
+
+      br_aes_big_cbcdec_keys decCtx;
+
+      br_aes_big_cbcdec_init(&decCtx, key, 16);
+      br_aes_big_cbcdec_run( &decCtx, iv, data, n_blocks*16 );
+
+      uint8_t n_padding = data[n_blocks*16-1];
+      len = n_blocks*16 - n_padding;
+      char plain_data[len + 1];
+      memcpy(plain_data, data, len);
+      plain_data[len] = '\0';
+
+      return String(plain_data);
+}
+
+
 
 String loadUsers(){
   
@@ -181,14 +260,14 @@ void ValidateLoadedUsers(){ //VALIDATE LOADED USERS WITH KEYCHALLENGE
         ValidTokens[i] += String (UserSessionid[x], HEX);
       }
     
-  /*
+  
   Serial.print("User: ");//DEBUG
   Serial.println(Users[i]);//DEBUG
   Serial.print("UserHash: ");//DEBUG
   Serial.println(UsersHash[i]);//DEBUG
   Serial.print("UserToken: ");//DEBUG
   Serial.println(ValidTokens[i]);//DEBUG  
-  */
+  
   
   }  
   
@@ -266,6 +345,25 @@ bool IGNUM::InputPlainCode(String inputPack){ //INPUT PLAIN CODE
         
     return OUTPUT_Function;
 
+}
+
+bool IGNUM::InputCyphercode(String CypherCode){
+
+  if (!CypherCode.startsWith("IG01")){
+    return InputPlainCode(CypherCode);
+  } else {
+    //thats where magic happens!
+    CypherCode.remove(0,4);
+    
+    for (int i = 0; i != last_User; i++){
+
+      String DecCypherCode = decrypt(CypherCode, ValidTokens[i], STRKeyChallenge); //InitVector = Challenge
+
+      if (strstr(DecCypherCode.c_str(), ValidTokens[i].c_str())){
+          return InputPlainCode(DecCypherCode);
+      }
+    }
+  }
 }
 
 void IGNUM::reload(){

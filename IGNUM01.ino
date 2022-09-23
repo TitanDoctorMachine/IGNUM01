@@ -1,6 +1,8 @@
 #include "IGNUM01_AUTH_DECODER.h"
 #include <cstring>
 #include <string>
+#include <Arduino.h>
+
 
 IGNUM IGNUM;
 
@@ -27,7 +29,7 @@ void loop() {
   
   if ( Termial != ""){ 
       Serial.println(" ");  
-      Serial.println(inputCommand(IGNUM.InputPlainCode(Termial)));
+      Serial.println(inputCommand(IGNUM.InputCyphercode(Termial)));
       Serial.println(" ");
       IGNUM.setChaosFactor("11:11:currentim?");
       IGNUM.reload();
@@ -40,10 +42,6 @@ void loop() {
 }
 
 
-
-//FIM CAMPO DE OBRAS;
-
-
 String Commands[16] = {"HELP", "ROOT", "ADDUSER", "RESET_USERS"}; //Native commands;
 
 int Last_Commands_NUM() {
@@ -52,7 +50,7 @@ int Last_Commands_NUM() {
     if (Commands[i] != ""){
       result++;
       } else {
-      break;  
+      break;
       }
         
     }
@@ -128,16 +126,3 @@ String inputCommand(bool allowed){
 
 }
 
-  
-  
-  
-//Next Versions need to add assymetrical crypto to command, pub key will be in main page, and will need to encrypted for receiving commands;  
-    
-void GeneratePUBKEY(){
-  
-}
-
-void InputCypherCode(){
-  
-}
-  
