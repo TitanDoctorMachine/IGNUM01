@@ -1,7 +1,7 @@
 #include "IGNUM01_AUTH_DECODER.h"
 #include <cstring>
 #include <string>
-#include <Arduino.h>
+//#include <Arduino.h>
 
 
 IGNUM IGNUM;
@@ -11,6 +11,9 @@ String Server_State;
 void setup() {
 
   Serial.begin(115200);
+  
+  delay(1000);
+
   Serial.println(" ");
   Serial.println("Starting_System...");
   IGNUM.setChaosFactor("maybetimeornoisepin");

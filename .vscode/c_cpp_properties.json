@@ -40,6 +40,7 @@
                 "__ets__",
                 "ICACHE_FLASH",
                 "_GNU_SOURCE",
+                "BEARSSL_SSL_BASIC",
                 "MMU_IRAM_SIZE=0x8000",
                 "MMU_ICACHE_SIZE=0x8000",
                 "NONOSDK22x_190703=1",

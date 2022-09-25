@@ -7,7 +7,6 @@
 #include "Base64.h"
 #include <ESP8266WiFi.h>
 
-
 SHA256 sha256, userhash;
 
 bool ValidCommand = 0, configmode = 0;
@@ -27,23 +26,20 @@ void WRITETOFILE(String state, String path) {
   rFile.close();
 }
  
-int try_read = 0;
-
 String READFILE(String path) {
     
-      File rFile = SPIFFS.open(path,"r");
-      
-      if (!rFile) {
-          WRITETOFILE("", path);
-          try_read = 0;
-      }
-    
-      String content = rFile.readStringUntil('\n'); //desconsidera '\r\n'
-      rFile.close();
-      return content;
-    }
+  File rFile = SPIFFS.open(path,"r");
+  
+  if (!rFile) {
+       WRITETOFILE("", path);
+  }
+ 
+  String content = rFile.readStringUntil('\n'); //desconsidera '\r\n'
+  rFile.close();
+  return content;
+}
 
-
+/*
 String encrypt(String plain_data, String SymKey, String Vector){
       
       // AES CBC Encryption
@@ -81,7 +77,7 @@ String encrypt(String plain_data, String SymKey, String Vector){
       return String(encoded_data);
 }
 
-
+*/
 String decrypt(String encoded_data_str, String SymKey, String Vector){  
 
       // AES CBC Decryption
@@ -116,7 +112,6 @@ String decrypt(String encoded_data_str, String SymKey, String Vector){
 
       return String(plain_data);
 }
-
 
 
 String loadUsers(){
@@ -365,6 +360,7 @@ bool IGNUM::InputCyphercode(String CypherCode){
     }
   }
 }
+
 
 void IGNUM::reload(){
   
