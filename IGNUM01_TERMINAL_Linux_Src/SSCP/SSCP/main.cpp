@@ -11,8 +11,8 @@
 #include <openssl/evp.h>
 using namespace std;
 
-//COMPILE USING "$ g++ main.cpp -I/opt/ssl/include/ -L/opt/ssl/lib/ -lcrypto -lssl -Wall"
-// SPARTAN SIMPLE COMMAND PROMPT - SSCP >> (EX:) SSCP PINSTATUS
+//COMPILE USING "$ g++ main.cpp -o SSCP  -I/opt/ssl/include/ -L/opt/ssl/lib/ -lcrypto -lssl -Wall"
+//SPARTAN SIMPLE COMMAND PROMPT - SSCP >> (EX:) SSCP PINSTATUS
 /*  * TO INSTALL, CREATE A USER FOLDER IN HOME FOLDER, NAMED IGNUM_CRED,
     * WITH ROOT FILLIATION, AND PERMIT ONLY THE USER THAT WILL RUN THE SOFTWARE
     * TO ACCESS THE FOLDER;
@@ -208,19 +208,29 @@ string VALIDATE_COMMAND(string challng, string USER_LOADED, string command){
 }
 int main(int argc, char *argv[])
 {
+    
+    cout << argc << "\n";
+
+    
     if (argv[1] == ""){
         return 0;
     }
-    nominal_Native_IP = loadIPFile();
+    if (argc > 2){
+        nominal_Native_IP = string(argv[1]);
+        nominal_Native_IP += "/";
+    } else { 
+        nominal_Native_IP = loadIPFile();
+    }
+
     USER = loadUser("/home/IGNUM_CRED/USER_NATIVE");
-    string command = string(argv[1]);
+    string command = string(argv[argc-1]);
 
     string URL = "curl ";
     URL += nominal_Native_IP;
     URL += VALIDATE_COMMAND(GetChallenge(), USER, command);
     //cout << URL << "\n"; DEBUG
     system(URL.c_str());
-
+   
     return 0;
 }
 
